@@ -8,7 +8,7 @@
 
 #define PORT	 1717
 #define MAXLINE 1024
-#define MAX_TLV_OBJECTS 50
+#define MAX_TLV_OBJECTS 60
 #define MAX_DATA 100
 
 /// ------------------------- structure de données ------------------------------
@@ -47,7 +47,7 @@ int32_t tlv_chain_add_str( tlv_chain *a, const char *str);
 int32_t add_tlv( tlv_chain *a, unsigned char type, int16_t size, const unsigned char *bytes);
 int32_t tlv_chain_toBuff( tlv_chain *a, unsigned char *dest, int32_t *count);
 int32_t Buff_to_tlv_chain(const unsigned char *src,  tlv_chain *dest, int32_t length);
-int32_t tlv_chain_print(tlv_chain *a);
+int32_t afficher_tlv_chain(tlv_chain *a);
 int32_t  free_tlv_list( tlv_chain *a);
 
 
