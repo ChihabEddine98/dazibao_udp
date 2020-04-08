@@ -11,6 +11,36 @@
 
 
 int main() {
+    tlv_chain chain1, chain2;
+    memset(&chain1, 0, sizeof(chain1));
+    memset(&chain2, 0, sizeof(chain2));
+    unsigned char chainbuff[2048]={0} ;
+    int32_t l = 0;
+add_tlv(&chain1,0,0,NULL);
+tlv_chain_add_str(&chain1, "998967-44-33-44-12");
+
+
+
+   /* tlv_chain_add_int32(&chain1, 31144);
+    tlv_chain_add_str(&chain1, "george");
+    tlv_chain_add_int32(&chain1, 7);
+    tlv_chain_add_str(&chain1, "998967-44-33-44-12");
+    tlv_chain_add_str(&chain1, "Grand Chamption Atlanta; details: Ave12");
+    tlv_chain_add_int32(&chain1, 7900);
+*/
+    // serialization/deserialization test
+    tlv_chain_toBuff(&chain1, chainbuff, &l);
+    parserV1(chainbuff, &chain2, l);
+   // Buff_to_tlv_chain(chainbuff, &chain2, l);
+
+    // print the tlv chain contents
+    afficher_tlv_chain(&chain2);
+
+    // free each chain
+    free_tlv_list(&chain1);
+    free_tlv_list(&chain2);
+    return 0;
+    /*
     int sockfd;
     char buffer[MAXLINE];
     char *hello = "Hello from server";
@@ -52,4 +82,5 @@ int main() {
         printf("Hello message sent.\n");
 
     return 0;
+     */
 }
