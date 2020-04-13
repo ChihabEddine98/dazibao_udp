@@ -103,7 +103,7 @@ int main() {
 
 
 
-    sendto(sockfd, (char *)paquet, 192,
+    sendto(sockfd, (char *)paquet, sizeof(paquet),
                MSG_CONFIRM, (const struct sockaddr *) &servaddr,
                sizeof(servaddr));
         printf("paquet  sent.\n");
