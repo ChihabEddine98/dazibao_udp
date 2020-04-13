@@ -15,7 +15,7 @@ int main() {
     memset(&chain1, 0, sizeof(chain1));
     memset(&chain2, 0, sizeof(chain2));
     unsigned char chainbuff[1024]={0} ;
-    int32_t l = 0;
+    uint16_t l = 0;
     add_tlv(&chain1,0,0,NULL);
     tlv_chain_add_str(&chain1, "998967-44-33-44-12");
 
@@ -32,7 +32,7 @@ int main() {
     tlv_chain_toBuff(&chain1, chainbuff, &l);
     // parserV1(chainbuff, &chain2, l);
 
-    char* paquet=chain2Paquet(chainbuff);
+   char* paquet=chain2Paquet(chainbuff,l);
     parserPaquet(paquet);
    // Buff_to_tlv_chain(chainbuff, &chain2, l);
 
@@ -40,51 +40,9 @@ int main() {
     afficher_tlv_chain(&chain2);
 
     // free each chain
-    free(paquet);
+   // free(paquet);
     free_tlv_list(&chain1);
     free_tlv_list(&chain2);
     return 0;
-    /*
-    int sockfd;
-    char buffer[MAXLINE];
-    char *hello = "Hello from server";
-    struct sockaddr_in servaddr, cliaddr;
 
-    // Creating socket file descriptor
-    if ( (sockfd = socket(AF_INET, SOCK_DGRAM,0)) < 0 ) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
-    }
-
-    memset(&servaddr, 0, sizeof(servaddr));
-    memset(&cliaddr, 0, sizeof(cliaddr));
-
-    // Filling server information
-    servaddr.sin_family = AF_INET; // IPv4
-    servaddr.sin_addr.s_addr = INADDR_ANY;
-    servaddr.sin_port = htons(PORT);
-
-    // Bind the socket with the server address
-    if ( bind(sockfd, (const struct sockaddr *)&servaddr,
-              sizeof(servaddr)) < 0 )
-    {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-
-    int len, n;
-
-    len = sizeof(cliaddr); //len is value/resuslt
-        n = recvfrom(sockfd, (char *)buffer, MAXLINE,
-                     MSG_WAITALL, ( struct sockaddr *) &cliaddr,
-                     &len);
-        buffer[n] = '\0';
-        printf("Client : %s\n", buffer);
-        sendto(sockfd, (const char *)hello, strlen(hello),
-               MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
-               len);
-        printf("Hello message sent.\n");
-
-    return 0;
-     */
 }

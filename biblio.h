@@ -70,8 +70,8 @@ int32_t tlv_chain_toBuff( tlv_chain *a, unsigned char *dest, int32_t *count);
 int32_t Buff_to_tlv_chain(const unsigned char *src,  tlv_chain *dest, int32_t length);
 int32_t afficher_tlv_chain(tlv_chain *a);
 int32_t  free_tlv_list( tlv_chain *a);
-int32_t parserV1(const unsigned char *src,  tlv_chain *list, int32_t length);
-char* chain2Paquet (char chain[PAQ_SIZE]);
+int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length);
+char* chain2Paquet (char *chain,uint16_t  len);
 
 void parserTLV(tlv_chain *list,int index);
 void parserPaquet(char *buf);

@@ -87,6 +87,7 @@ int32_t tlv_chain_toBuff( tlv_chain *a, unsigned char *dest, int32_t *count)
 
     // Return number of bytes serialized
     *count = counter;
+    dest[counter+1]='\0';
 
     // success
     return 0;
@@ -162,7 +163,7 @@ int32_t afficher_tlv_chain( tlv_chain *a)
     return 0;
 }
 
-int32_t parserV1(const unsigned char *src,  tlv_chain *list, int32_t length)
+int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
 {
     if(list == NULL || src == NULL)
         return -1;
@@ -171,7 +172,8 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, int32_t length)
     if(list->used != 0)
         return -1;
 
-    int32_t counter = 0;
+    int16_t counter = 0;
+    printf("verifier %d\n",src[0]==0);
     while(counter < length)
     {
         if(list->used == MAX_TLV_OBJECTS)
@@ -179,6 +181,7 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, int32_t length)
         // deserialize type
         list->object[list->used].type = src[counter];
         counter++;
+
         if(list->object[list->used].type!=0) {
             // deserialize size
             memcpy(&list->object[list->used].size, &src[counter], 2);
@@ -291,16 +294,15 @@ void parserTLV(tlv_chain *list,int index){
 
 }
 
-char* chain2Paquet (char chain[PAQ_SIZE])
+char* chain2Paquet (char *chain,uint16_t  len)
 {
     printf(" chain 2 paquet");
-    char* res=malloc(sizeof(char)*PAQ_SIZE);
-    uint16_t  len=strlen(chain);
 
-    memcpy(&res,95,1);
-    memcpy(&res+1,1,1);
-    memcpy(&res+2,&len,sizeof(len));
-    memcpy(&res+4,chain,len);
+    char *res=malloc(sizeof(char)*PAQ_SIZE);
+   res[0]=0b01011111;
+   res[1]=1;
+    memcpy(&res[2],&len,2);
+    memcpy(&res[4],chain,len);
 
 
     return res;
@@ -314,14 +316,21 @@ void parserPaquet(char *buf){
 
     if(buf[0]==95 && buf[1]==1)
     {
-      memcpy(len,&buf+2,2);
-      parserV1(buf+4,&list,len);
+        printf("on est la \n");
+      memcpy(&len,&buf[2],2);
+        printf("la taille %d\n",len);
 
-      while(index < list.used)
+        parserV1(buf,&list,len);
+        printf("la taille de la list %d\n",list.used);
+
+        afficher_tlv_chain(&list);
+
+     /* while(index < list.used)
       {
         parserTLV(&list,index);
         index++;
       }
+      */
     }
     else 
     {
