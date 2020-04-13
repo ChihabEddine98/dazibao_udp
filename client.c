@@ -93,13 +93,14 @@ int main() {
     memset(&chain2, 0, sizeof(chain2));
     unsigned char chainbuff[1024]={0} ;
     uint16_t l = 0;
-	char msg[9]="Yawddiiii";
-    add_tlv(&chain1,WARNING,strlen(msg),msg);
-	printf("msg size %d.\n",strlen(msg));
+
+    tlv_chain_add_str(&chain1,"ya wediii jay7a");
+    //add_tlv(&chain1,WARNING,strlen(msg),msg);
 
 
     tlv_chain_toBuff(&chain1, chainbuff, &l);
     char* paquet=chain2Paquet(chainbuff,l);
+
 
 
     sendto(sockfd, (char *)paquet, MAXLINE,
