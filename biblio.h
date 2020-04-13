@@ -14,7 +14,6 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#define PORT	 1717
 #define SERVER_PORT 1212
 #define SERVER_IP   "81.194.27.155"
 #define PAQ_SIZE   1024
@@ -82,8 +81,8 @@ int32_t  free_tlv_list( tlv_chain *a);
 int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length);
 char* chain2Paquet (char *chain,uint16_t  len);
 
-void parserTLV(tlv_chain *list,int index,SA addr,int sockfd);
-void parserPaquet(char *buf,SA addr,int sockfd);
+void parserTLV(tlv_chain *list,int index,SA *addr,int sockfd);
+void parserPaquet(char *buf,SA *addr,int sockfd);
 
 
 #endif //PROJETR_BIBLIO_H
