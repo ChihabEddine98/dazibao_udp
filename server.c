@@ -8,9 +8,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>
+#include "biblio.h"
 
-#define SERVER_PORT 1212
-#define SERVER_IP   "81.194.27.155"
+
 
 
 int main(int argc, char const *argv[])
@@ -41,8 +41,8 @@ int main(int argc, char const *argv[])
 
     req[2] = 0;
     req[3] = 2;
-    req[4] = 0b0000010;
-    req[5] = 0b0000000;   
+    req[4] = 2;
+    req[5] = 0;   
 
     if ((sendto(client, req, sizeof(req), 0, (struct sockaddr *)&sin, to)) < 0)
     {

@@ -239,102 +239,96 @@ char *GetPort(char *buf,int *index){
     }
     return port;
 }
-void parserTLV(tlv_chain *list,char type,char *buf,int *index){
+void parserTLV(tlv_chain *list,int index){
     int length;
     char *body;
-    switch (type){
+    switch (list->object[index].type){
         case '0':
             printf("type 0");
-            *index=*index+1;
-            add_tlv(list,0,NULL,NULL);
             break;
         case '1':
             printf("type 1");
-            *index=*index+1;
-            length=buf[*index]- '0';
-            *index=*index+1+length;
             break;
         case '2':
             printf("type 2");
-            *index=*index+1;
-            length=buf[*index]- '0';
-            *index=*index+1;
             //Ce TLV demande au récepteur d’envoyer un TLVNeighbour
 
             break;
         case '3':
             printf("type 3");
-            *index=*index+1;
-            length=buf[*index]- '0';
-            *index=*index+1;
-            char *ip=GetIp(buf,index);
-            char *port=GetPort(buf,index);
             //Ce TLV contient l’adresse d’un voisin vivant de l’émetteur
 
             break;
         case '4':
             printf("type 4");
-            *index=*index+1;
-            length=buf[*index]- '0';
-            *index=*index+1;
-            char *NetworkHash=Getbody(buf,index,length);
             //Ce TLV indique l’idée que se fait l’émetteur de l’état actuel du réseau
 
             break;
         case '5':
             printf("type 5");
-            *index=*index+1;
-            length=buf[*index]- '0';
-            *index=*index+1;
             //Ce TLV demande au récepteur d’envoyer une série de TLVNode Hash
             break;
         case '6':
             printf("type 6");
-            *index=*index+1;
-            length=buf[*index]- '0';
-            *index=*index+1;
-            body=Getbody(buf,index,length);
            //Ce TLV est envoyé en réponse à un TLVNetwork State Request.
 
             break;
         case '7':
             printf("type 7");
-            *index=*index+1;
-            length=buf[*index]- '0';
-            *index=*index+1;
-            char *id=Getbody(buf,index,length);
             //Ce TLV demande au récepteur d’envoyer un TLVNode Statedécrivant l’état du nœud indiquépar le champNode Id
 
             break;
         case '8':
             printf("type 8");
-            *index=*index+1;
-            length=buf[*index]- '0';
-            *index=*index+1;
-             body=Getbody(buf,index,length);
              // Ce TLV est envoyé en réponse à un TLVNode State Request
             break;
         case '9':
             printf("type 8");
-            *index=*index+1;
-            length=buf[*index]- '0';
-            *index=*index+1;
-            body=Getbody(buf,index,length);
-            printf("warning :%s",body);
             break;
         default:
-            printf("default warning!!");
+            printf("default type 9 : warning!!");
     }
 
 }
 
+char* chain2Paquet (char chain[PAQ_SIZE])
+{
+    printf(" chain 2 paquet");
+    char* res=malloc(sizeof(char)*PAQ_SIZE);
+    uint16_t  len=strlen(chain);
+
+    memcpy(&res,95,1);
+    memcpy(&res+1,1,1);
+    memcpy(&res+2,&len,sizeof(len));
+    memcpy(&res+4,chain,len);
+
+
+    return res;
+
+}
 
 void parserPaquet(char *buf){
     int index=0;
     tlv_chain list;
-    while(index<strlen(buf) && index<MAXLINE){
-        parserTLV(&list,buf[index],buf,&index);
+    uint16_t len;
+
+    if(buf[0]==95 && buf[1]==1)
+    {
+      memcpy(len,&buf+2,2);
+      parserV1(buf+4,&list,len);
+
+      while(index < list.used)
+      {
+        parserTLV(&list,index);
+        index++;
+      }
     }
+    else 
+    {
+        printf(" error ---- : paquet non reconnu");
+    }
+    
+    
 
 }
 

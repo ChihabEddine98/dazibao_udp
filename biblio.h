@@ -7,6 +7,9 @@
 #include <stdint.h>
 
 #define PORT	 1717
+#define SERVER_PORT 1212
+#define SERVER_IP   "81.194.27.155"
+#define PAQ_SIZE   1024
 #define MAXLINE 1024
 #define MAX_TLV_OBJECTS 60
 #define MAX_DATA 100
@@ -50,8 +53,9 @@ int32_t Buff_to_tlv_chain(const unsigned char *src,  tlv_chain *dest, int32_t le
 int32_t afficher_tlv_chain(tlv_chain *a);
 int32_t  free_tlv_list( tlv_chain *a);
 int32_t parserV1(const unsigned char *src,  tlv_chain *list, int32_t length);
+char* chain2Paquet (char chain[PAQ_SIZE]);
 
-void parserTLV(tlv_chain *list,char type,char *buf,int *index);
+void parserTLV(tlv_chain *list,int index);
 void parserPaquet(char *buf);
 
 
