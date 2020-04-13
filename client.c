@@ -84,8 +84,8 @@ int main() {
 
         // Filling server information
         servaddr.sin_family = AF_INET;
-        servaddr.sin_port = htons(PORT);
-        servaddr.sin_addr.s_addr = INADDR_ANY;
+        servaddr.sin_port = htons(SERVER_PORT);
+        servaddr.sin_addr.s_addr = inet_addr(SERVER_IP);
 
         int n, len;
     tlv_chain chain1, chain2;
@@ -93,7 +93,10 @@ int main() {
     memset(&chain2, 0, sizeof(chain2));
     unsigned char chainbuff[1024]={0} ;
     uint16_t l = 0;
-    add_tlv(&chain1,2,0,NULL);
+	char msg[9]="Yawddiiii";
+    add_tlv(&chain1,WARNING,strlen(msg),msg);
+	printf("msg size %d.\n",strlen(msg));
+
 
     tlv_chain_toBuff(&chain1, chainbuff, &l);
     char* paquet=chain2Paquet(chainbuff,l);
