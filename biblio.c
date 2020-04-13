@@ -241,54 +241,62 @@ char *GetPort(char *buf,int *index){
     }
     return port;
 }
-void parserTLV(tlv_chain *list,int index){
+void parserTLV(tlv_chain *list,int index,SA addr,int sockfd){
     int length;
     char *body;
+    unsigned char chainbuff[1024]={0} ;
+    uint16_t l = 0;
     switch (list->object[index].type){
-        case '0':
-            printf("type 0");
+        case PAD_1:
+            printf("type 0\n");
             break;
-        case '1':
-            printf("type 1");
+        case PAD_N:
+            printf("type 1\n");
             break;
-        case '2':
+        case NEIGH_R:
             printf("type 2");
             //Ce TLV demande au récepteur d’envoyer un TLVNeighbour
-
+            tlv_chain neigh;
+            memset(&neigh, 0, sizeof(neigh));
+            add_tlv(&neigh,NEIGH,0,NULL);
+            tlv_chain_toBuff(&neigh, chainbuff, &l);
+            char* paquet=chain2Paquet(chainbuff,l);
+            int n=sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *) &addr,sizeof(addr));
+            printf("\n n: %d \n",n);
             break;
-        case '3':
-            printf("type 3");
+        case NEIGH:
+            printf("type 3\n");
             //Ce TLV contient l’adresse d’un voisin vivant de l’émetteur
 
             break;
-        case '4':
+        case NET_HASH:
             printf("type 4");
             //Ce TLV indique l’idée que se fait l’émetteur de l’état actuel du réseau
 
             break;
-        case '5':
+        case NET_STATE_R:
             printf("type 5");
             //Ce TLV demande au récepteur d’envoyer une série de TLVNode Hash
             break;
-        case '6':
+        case NODE_HASH:
             printf("type 6");
            //Ce TLV est envoyé en réponse à un TLVNetwork State Request.
 
             break;
-        case '7':
+        case NODE_STATE_R:
             printf("type 7");
             //Ce TLV demande au récepteur d’envoyer un TLVNode Statedécrivant l’état du nœud indiquépar le champNode Id
 
             break;
-        case '8':
+        case NODE_STATE:
             printf("type 8");
              // Ce TLV est envoyé en réponse à un TLVNode State Request
             break;
-        case '9':
-            printf("type 8");
+        case WARNING:
+            printf("type 9");
             break;
         default:
-            printf("default type 9 : warning!!");
+            printf("default type");
     }
 
 }
@@ -308,7 +316,7 @@ char* chain2Paquet (char *chain,uint16_t  len)
 
 }
 
-void parserPaquet(char *buf){
+void parserPaquet(char *buf,SA addr,int sockfd){
     int index=0;
     tlv_chain list;
     memset(&list, 0, sizeof(list));
@@ -323,14 +331,14 @@ void parserPaquet(char *buf){
         parserV1(buf+4,&list,len);
         printf("la taille de la list %d\n",list.used);
 
-        afficher_tlv_chain(&list);
+       // afficher_tlv_chain(&list);
 
-     /* while(index < list.used)
+      while(index < list.used)
       {
-        parserTLV(&list,index);
+        parserTLV(&list,index,addr,sockfd);
         index++;
       }
-      */
+
     }
     else 
     {
