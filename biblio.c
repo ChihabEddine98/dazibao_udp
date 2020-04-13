@@ -173,7 +173,6 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
         return -1;
 
     int16_t counter = 0;
-    printf("verifier %d\n",src[0]==0);
     while(counter < length)
     {
         if(list->used == MAX_TLV_OBJECTS)
@@ -247,7 +246,7 @@ void parserTLV(tlv_chain *list,int index){
     char *body;
     switch (list->object[index].type){
         case '0':
-            printf("type 0 : ignoré à la réception");
+            printf("type 0");
             break;
         case '1':
             printf("type 1");
@@ -301,8 +300,8 @@ char* chain2Paquet (char *chain,uint16_t  len)
     char *res=malloc(sizeof(char)*PAQ_SIZE);
    res[0]=0b01011111;
    res[1]=1;
-    memcpy(&res[2],&len,2);
-    memcpy(&res[4],chain,len);
+    memcpy(res+2,&len,2);
+    memcpy(res+4,chain,len);
 
 
     return res;
@@ -312,15 +311,16 @@ char* chain2Paquet (char *chain,uint16_t  len)
 void parserPaquet(char *buf){
     int index=0;
     tlv_chain list;
+    memset(&list, 0, sizeof(list));
     uint16_t len;
 
     if(buf[0]==95 && buf[1]==1)
     {
         printf("on est la \n");
-      memcpy(&len,&buf[2],2);
+        memcpy(&len,&buf[2],2);
         printf("la taille %d\n",len);
 
-        parserV1(buf,&list,len);
+        parserV1(buf+4,&list,len);
         printf("la taille de la list %d\n",list.used);
 
         afficher_tlv_chain(&list);
