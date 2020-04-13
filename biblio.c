@@ -173,6 +173,7 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
         return -1;
 
     int16_t counter = 0;
+    printf("parser la\n");
     while(counter < length)
     {
         if(list->used == MAX_TLV_OBJECTS)
@@ -241,7 +242,7 @@ char *GetPort(char *buf,int *index){
     }
     return port;
 }
-void parserTLV(tlv_chain *list,int index,SA addr,int sockfd){
+void parserTLV(tlv_chain *list,int index,SA *addr,int sockfd){
     int length;
     char *body;
     unsigned char chainbuff[1024]={0} ;
@@ -261,8 +262,8 @@ void parserTLV(tlv_chain *list,int index,SA addr,int sockfd){
             add_tlv(&neigh,NEIGH,0,NULL);
             tlv_chain_toBuff(&neigh, chainbuff, &l);
             char* paquet=chain2Paquet(chainbuff,l);
-            int n=sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *) &addr,sizeof(addr));
-            printf("\n n: %d \n",n);
+            int n=sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)addr,sizeof(addr));
+            printf("\n paquet type 3 sent  \n");
             break;
         case NEIGH:
             printf("type 3\n");
@@ -316,17 +317,18 @@ char* chain2Paquet (char *chain,uint16_t  len)
 
 }
 
-void parserPaquet(char *buf,SA addr,int sockfd){
+void parserPaquet(char *buf,SA *addr,int sockfd){
     int index=0;
     tlv_chain list;
     memset(&list, 0, sizeof(list));
     uint16_t len;
+    char taile[2];
 
     if(buf[0]==95 && buf[1]==1)
     {
-        printf("on est la \n");
+
         memcpy(&len,&buf[2],2);
-        printf("la taille %d\n",len);
+        printf("la taille %d\n",len==2);
 
         parserV1(buf+4,&list,len);
         printf("la taille de la list %d\n",list.used);
@@ -348,5 +350,4 @@ void parserPaquet(char *buf,SA addr,int sockfd){
     
 
 }
-
 
