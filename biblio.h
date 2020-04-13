@@ -5,6 +5,14 @@
 #ifndef PROJETR_BIBLIO_H
 #define PROJETR_BIBLIO_H
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 
 #define PORT	 1717
 #define SERVER_PORT 1212
@@ -23,9 +31,10 @@
 #define NODE_HASH 6
 #define NODE_STATE_R 7  
 #define NODE_STATE 8
-#define WARNING 9  
+#define WARNING 9
 
 
+typedef struct sockaddr_in SA ;
 
 
 
@@ -73,8 +82,8 @@ int32_t  free_tlv_list( tlv_chain *a);
 int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length);
 char* chain2Paquet (char *chain,uint16_t  len);
 
-void parserTLV(tlv_chain *list,int index);
-void parserPaquet(char *buf);
+void parserTLV(tlv_chain *list,int index,SA addr,int sockfd);
+void parserPaquet(char *buf,SA addr,int sockfd);
 
 
 #endif //PROJETR_BIBLIO_H
