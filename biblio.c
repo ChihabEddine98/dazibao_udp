@@ -244,7 +244,7 @@ void parserTLV(tlv_chain *list,int index){
     char *body;
     switch (list->object[index].type){
         case '0':
-            printf("type 0");
+            printf("type 0 : ignoré à la réception");
             break;
         case '1':
             printf("type 1");

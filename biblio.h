@@ -14,6 +14,24 @@
 #define MAX_TLV_OBJECTS 60
 #define MAX_DATA 100
 
+#define PAD_1 0
+#define PAD_N 1
+#define NEIGH_R 2
+#define NEIGH 3
+#define NET_HASH 4
+#define NET_STATE_R 5
+#define NODE_HASH 6
+#define NODE_STATE_R 7  
+#define NODE_STATE 8
+#define WARNING 9  
+
+
+
+
+
+
+
+
 /// ------------------------- structure de données ------------------------------
 // TLV data structure
 typedef struct
