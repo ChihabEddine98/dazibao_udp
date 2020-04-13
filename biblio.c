@@ -19,7 +19,7 @@ int32_t tlv_chain_add_int32(tlv_chain *a, int32_t x)
 // add tlv object which contains null terminated string
 int32_t tlv_chain_add_str( tlv_chain *a, const char *str)
 {
-    return add_tlv(a, 3, strlen(str) + 1, str);
+    return add_tlv(a, 9, strlen(str) + 1, str);
 }
 
 
@@ -350,4 +350,5 @@ void parserPaquet(char *buf,SA *addr,int sockfd){
     
 
 }
+
 
