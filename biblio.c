@@ -215,37 +215,11 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
 
 ///----------------------------------------------------------------------------
 
-char *Getbody(char *buf,int *index,int length){
-    char val[length];
-    int i=0;
-    while(i<length){
-        val[i]=buf[*index];
-        *index=*index+1;
-    }
-    return val;
-}
-
-char *GetIp(char *buf,int *index){
-    char ip[16];
-    int i=0;
-    while(i<16){
-        ip[i]=buf[*index];
-        *index=*index+1;
-    }
-    return ip;
-}
-char *GetPort(char *buf,int *index){
-    char port[2];
-    int i=0;
-    while(i<2){
-        port[i]=buf[*index];
-        *index=*index+1;
-    }
-    return port;
-}
-void parserTLV(tlv_chain *list,int index,SA *addr,int sockfd){
+void parserTLV(Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
     int length;
     char *body;
+    char *data;
+    SA servaddr;
     unsigned char chainbuff[1024]={0} ;
     uint16_t l = 0;
     switch (list->object[index].type){
@@ -258,17 +232,38 @@ void parserTLV(tlv_chain *list,int index,SA *addr,int sockfd){
         case NEIGH_R:
             printf("type 2");
             //Ce TLV demande au récepteur d’envoyer un TLVNeighbour
+
+            Voisin *v=hasardVoisin(voisins);
+            servaddr.sin_family = AF_INET;
+            servaddr.sin_port = htons(v->port);
+            servaddr.sin_addr.s_addr = inet_addr(v->ip);
+
             tlv_chain neigh;
             memset(&neigh, 0, sizeof(neigh));
-            add_tlv(&neigh,NEIGH,0,NULL);
+            data=malloc(strlen(v->ip)+2);
+            memcpy(data,v->ip,strlen(v->ip));
+            memcpy(&data[strlen(v->ip)],&v->port,2);
+            add_tlv(&neigh,NEIGH,strlen(data)+2,data);
             tlv_chain_toBuff(&neigh, chainbuff, &l);
             char* paquet=chain2Paquet(chainbuff,l);
-            int n=sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)addr,sizeof(addr));
+            sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)&servaddr,sizeof(servaddr));
             printf("\n paquet type 3 sent  \n");
             break;
         case NEIGH:
             printf("type 3\n");
+            tlv_chain netHash;
             //Ce TLV contient l’adresse d’un voisin vivant de l’émetteur
+             data=list->object[index].data;
+             int16_t len=list->object[index].size;
+             uint16_t port=0;
+             char *ip=malloc(len-2);
+             memcpy(ip,data,len-2);
+             memcpy(&port,&data[len-2],2);
+            servaddr.sin_family = AF_INET;
+            servaddr.sin_port = htons(port);
+            servaddr.sin_addr.s_addr = inet_addr(ip);
+
+
 
             break;
         case NET_HASH:
@@ -318,7 +313,7 @@ char* chain2Paquet (char *chain,uint16_t  len)
 
 }
 
-void parserPaquet(char *buf,SA *addr,int sockfd){
+void parserPaquet(Voisins *voisins,char *buf,SA *addr,int sockfd){
     int index=0;
     tlv_chain list;
     memset(&list, 0, sizeof(list));
@@ -338,7 +333,7 @@ void parserPaquet(char *buf,SA *addr,int sockfd){
 
       while(index < list.used)
       {
-        parserTLV(&list,index,addr,sockfd);
+        parserTLV(voisins,&list,index,addr,sockfd);
         index++;
       }
 
@@ -424,10 +419,24 @@ Voisin *hasardVoisin(Voisins *voisins){
     }
 
 }
-void moinsde5voisins(Voisins *voisins){
+void moinsde5voisins(Voisins *voisins,int sockfd){
     if (voisins->used<5){
+        struct sockaddr_in servaddr;
         Voisin *v=hasardVoisin(voisins);
-
+        servaddr.sin_family = AF_INET;
+        servaddr.sin_port = htons(v->port);
+        servaddr.sin_addr.s_addr = inet_addr(v->ip);
+        int n, len;
+        tlv_chain chain1, chain2;
+        memset(&chain1, 0, sizeof(chain1));
+        memset(&chain2, 0, sizeof(chain2));
+        unsigned char chainbuff[1024]={0} ;
+        uint16_t l = 0;
+        add_tlv(&chain1,NEIGH_R,0,NULL);
+        tlv_chain_toBuff(&chain1, chainbuff, &l);
+        char* paquet=chain2Paquet(chainbuff,l);
+        sendto(sockfd, (char *)paquet, sizeof(paquet),0, (const struct sockaddr *) &servaddr,sizeof(servaddr));
+        printf("paquet  sent.\n");
     }
 }
 void parcoursVoisins(Voisins *voisins){

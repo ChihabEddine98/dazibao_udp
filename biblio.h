@@ -60,7 +60,7 @@ typedef struct
 typedef struct  {
     uint64_t id;
     uint16_t numDeSeq;
-    uint8_t *data;
+    char *data;
 }Triplets;
 typedef struct {
     char *ip ;
@@ -91,8 +91,8 @@ int32_t  free_tlv_list( tlv_chain *a);
 int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length);
 char* chain2Paquet (char *chain,uint16_t  len);
 
-void parserTLV(tlv_chain *list,int index,SA *addr,int sockfd);
-void parserPaquet(char *buf,SA *addr,int sockfd);
+void parserTLV(Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd);
+void parserPaquet(Voisins *voisins,char *buf,SA *addr,int sockfd);
 
 void parcoursVoisins(Voisins *voisins);
 int rechercheEmetteur(Voisins *voisins,char *ip, uint16_t port);
