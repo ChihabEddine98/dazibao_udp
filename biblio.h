@@ -99,6 +99,7 @@ int rechercheEmetteur(Voisins *voisins,char *ip, uint16_t port);
 void addVoisin(Voisins *voisins,char *ip, uint16_t port);
 void miseAjourVoisins(Voisins *voisins,char *ip, uint16_t port);
 void modifierVoisin(Voisins *voisins,char *ip, uint16_t port);
+Voisin *hasardVoisin(Voisins *voisins);
 
 
 #endif //PROJETR_BIBLIO_H

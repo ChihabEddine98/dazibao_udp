@@ -411,6 +411,25 @@ void miseAjourVoisins(Voisins *voisins,char *ip, uint16_t port){
         addVoisin(voisins,ip,port);
     }
 }
+Voisin *hasardVoisin(Voisins *voisins){
+    int nbgen=rand()%voisins->used;
+    int count=0;
+    while(count<Max_voisin){
+        if(voisins->TableDevoisins[count]!=NULL){
+            if(count==nbgen){
+                return voisins->TableDevoisins[count];
+            }
+        }
+        count++;
+    }
+
+}
+void moinsde5voisins(Voisins *voisins){
+    if (voisins->used<5){
+        Voisin *v=hasardVoisin(voisins);
+
+    }
+}
 void parcoursVoisins(Voisins *voisins){
 
 struct timespec now;
