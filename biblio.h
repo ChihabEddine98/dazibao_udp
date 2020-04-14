@@ -67,10 +67,10 @@ typedef struct {
     uint16_t port;
     struct timespec date;
     int permanent;
-}voisin;
+}Voisin;
 
 typedef struct  {
-    voisin *TableDevoisins[Max_voisin];
+    Voisin *TableDevoisins[Max_voisin];
     uint8_t used;
 }Voisins;
 typedef  struct{
@@ -93,6 +93,10 @@ char* chain2Paquet (char *chain,uint16_t  len);
 
 void parserTLV(tlv_chain *list,int index,SA *addr,int sockfd);
 void parserPaquet(char *buf,SA *addr,int sockfd);
+
+void parcoursVoisins(Voisins *voisins);
+int rechercheEmetteur(Voisins *voisins,char *ip, uint16_t port);
+void addVoisin(Voisins *voisins,char *ip, uint16_t port);
 
 
 #endif //PROJETR_BIBLIO_H

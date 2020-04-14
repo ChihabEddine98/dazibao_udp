@@ -352,6 +352,41 @@ void parserPaquet(char *buf,SA *addr,int sockfd){
 
 }
 
+int rechercheEmetteur(Voisins *voisins,char *ip, uint16_t port){
+    int count=0;
+    while(count<Max_voisin){
+        if(voisins->TableDevoisins[count]!=NULL){
+            if(voisins->TableDevoisins[count]->port==port && strcmp(ip,voisins->TableDevoisins[count]->ip)==0){
+                return 1;
+            }
+        }
+        count++;
+    }
+    return 0;
+}
+void addVoisin(Voisins *voisins,char *ip, uint16_t port){
+    struct timespec now;
+    int rc=clock_gettime(CLOCK_REALTIME,&now);
+    if(rc<0)
+    {
+        perror("erreur geettime");
+        exit(EXIT_FAILURE);
+    }
+    int count=0;
+    while(count<Max_voisin){
+        if(voisins->TableDevoisins[count]==NULL){
+            voisins->TableDevoisins[count]=malloc(sizeof(Voisin));
+            voisins->TableDevoisins[count]->port=port;
+            voisins->TableDevoisins[count]->ip=malloc(sizeof(ip));
+            strcpy(voisins->TableDevoisins[count]->ip,ip);
+            voisins->TableDevoisins[count]->date=now;
+            voisins->TableDevoisins[count]->permanent=0;
+            return;
+        }
+        count++;
+    }
+}
+
 void parcoursVoisins(Voisins *voisins){
 
 struct timespec now;
