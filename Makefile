@@ -6,7 +6,7 @@ projet:   main.o biblio.o client.o server.o
 			gcc  -o projet    main.o biblio.o client.o server.o
 
 main: main.o biblio.o
-		gcc -o main main.o biblio.o
+		gcc -o main main.o biblio.o -lssl -lcrypto
 
 server: server.o biblio.o
 		gcc -o server server.o biblio.o
