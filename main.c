@@ -8,9 +8,24 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include "biblio.h"
+#include <openssl/sha.h>
 
 
 int main() {
+
+char *ip="123456789";
+     const char *s = "szczaw";
+     unsigned char *d = SHA256(s, strlen(s), 0);
+     printf(" %s",d);
+    /*
+    uint16_t port=1212;
+    char *date=malloc(strlen(ip)+2);
+    memcpy(date,ip,strlen(ip));
+    memcpy(&date[strlen(ip)],&port,2);
+    uint16_t p=0;
+    memcpy(&p,&date[9],2);
+    printf("   %d\n ",p);
+    /*
     tlv_chain chain1, chain2;
     memset(&chain1, 0, sizeof(chain1));
     memset(&chain2, 0, sizeof(chain2));
@@ -33,6 +48,7 @@ int main() {
    // free(paquet);
     free_tlv_list(&chain1);
     free_tlv_list(&chain2);
+     */
     return 0;
 
 }

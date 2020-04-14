@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <pthread.h>
 
 #define SERVER_PORT 1212
 #define SERVER_IP   "81.194.27.155"

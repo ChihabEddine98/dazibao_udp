@@ -453,7 +453,7 @@ if(rc<0)
     int count=0;
     while(count<Max_voisin){
         if(voisins->TableDevoisins[count]!=NULL){
-            if(now.tv_sec-voisins->TableDevoisins[count]->date.tv_sec>70){
+            if(now.tv_sec-voisins->TableDevoisins[count]->date.tv_sec>70 && voisins->TableDevoisins[count]->permanent==0){
                 voisins->TableDevoisins[count]=NULL;
             }
         }
