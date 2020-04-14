@@ -386,7 +386,31 @@ void addVoisin(Voisins *voisins,char *ip, uint16_t port){
         count++;
     }
 }
-
+void modifierVoisin(Voisins *voisins,char *ip, uint16_t port){
+    struct timespec now;
+    int rc=clock_gettime(CLOCK_REALTIME,&now);
+    if(rc<0)
+    {
+        perror("erreur geettime");
+        exit(EXIT_FAILURE);
+    }
+    int count=0;
+    while(count<Max_voisin){
+        if(voisins->TableDevoisins[count]!=NULL){
+            if(voisins->TableDevoisins[count]->port==port && strcmp(ip,voisins->TableDevoisins[count]->ip)==0){
+                voisins->TableDevoisins[count]->date=now;
+            }
+        }
+        count++;
+    }
+}
+void miseAjourVoisins(Voisins *voisins,char *ip, uint16_t port){
+    if(rechercheEmetteur(voisins,ip,port)==1){
+        modifierVoisin(voisins,ip,port);
+    }else{
+        addVoisin(voisins,ip,port);
+    }
+}
 void parcoursVoisins(Voisins *voisins){
 
 struct timespec now;

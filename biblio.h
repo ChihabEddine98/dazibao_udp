@@ -97,6 +97,8 @@ void parserPaquet(char *buf,SA *addr,int sockfd);
 void parcoursVoisins(Voisins *voisins);
 int rechercheEmetteur(Voisins *voisins,char *ip, uint16_t port);
 void addVoisin(Voisins *voisins,char *ip, uint16_t port);
+void miseAjourVoisins(Voisins *voisins,char *ip, uint16_t port);
+void modifierVoisin(Voisins *voisins,char *ip, uint16_t port);
 
 
 #endif //PROJETR_BIBLIO_H
