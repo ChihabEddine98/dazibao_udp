@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 
 /// ---------------------------------------- fonctions Tlv --------------------------------
@@ -349,6 +350,28 @@ void parserPaquet(char *buf,SA *addr,int sockfd){
     
     
 
+}
+
+void parcoursVoisins(Voisins *voisins){
+
+struct timespec now;
+int rc=clock_gettime(CLOCK_REALTIME,&now);
+if(rc<0)
+{
+    perror("erreur geettime");
+    exit(EXIT_FAILURE);
+}
+
+
+    int count=0;
+    while(count<Max_voisin){
+        if(voisins->TableDevoisins[count]!=NULL){
+            if(now.tv_sec-voisins->TableDevoisins[count]->date.tv_sec>70){
+                voisins->TableDevoisins[count]=NULL;
+            }
+        }
+        count++;
+    }
 }
 
 

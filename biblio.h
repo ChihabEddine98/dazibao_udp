@@ -20,6 +20,7 @@
 #define MAXLINE 1024
 #define MAX_TLV_OBJECTS 60
 #define MAX_DATA 100
+#define Max_voisin 15
 
 #define PAD_1 0
 #define PAD_N 1
@@ -34,7 +35,6 @@
 
 
 typedef struct sockaddr_in SA ;
-
 
 
 
@@ -62,11 +62,21 @@ typedef struct  {
     uint16_t numDeSeq;
     uint8_t *data;
 }Triplets;
-
 typedef struct {
-    uint64_t idNode;
+    char *ip ;
+    uint16_t port;
+    struct timespec date;
+    int permanent;
+}voisin;
+
+typedef struct  {
+    voisin *TableDevoisins[Max_voisin];
+    uint8_t used;
+}Voisins;
+typedef  struct{
     Triplets *TableDeData[MAX_DATA];
-}node;
+    uint8_t used;
+}Data;
 
 
 
