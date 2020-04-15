@@ -94,8 +94,8 @@ int32_t  free_tlv_list( tlv_chain *a);
 int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length);
 char* chain2Paquet (char *chain,uint16_t  len);
 
-void parserTLV(Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd);
-void parserPaquet(Voisins *voisins,char *buf,SA *addr,int sockfd);
+void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd);
+void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd);
 
 void parcoursVoisins(Voisins *voisins);
 int rechercheEmetteur(Voisins *voisins,char *ip, uint16_t port);
@@ -104,6 +104,9 @@ void miseAjourVoisins(Voisins *voisins,char *ip, uint16_t port);
 void modifierVoisin(Voisins *voisins,char *ip, uint16_t port);
 Voisin *hasardVoisin(Voisins *voisins);
 void insererData(Data *datalist,char *id,uint16_t seq,char *donnee);
+char *NetworkHash(Data *datalist);
+char *concatTriplet(Triplet *d);
+char *Hash(char *data);
 
 
 #endif //PROJETR_BIBLIO_H

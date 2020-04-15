@@ -15,11 +15,15 @@ int main() {
 
 char *ip="123456789";
      const char *s = "szczaw";
-     unsigned char *d = SHA256(s, strlen(s), 0);
+     unsigned char *d =Hash(s);
     for (int i = 0; i <16 ; i++) {
         printf(" %02x",d[i]);
 
     }
+    char *l=malloc(12);
+    l="aymen";
+    printf(" \n%s  %d",l,strlen(l));
+
     /*
     uint16_t port=1212;
     char *date=malloc(strlen(ip)+2);

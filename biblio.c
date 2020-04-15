@@ -215,10 +215,11 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
 
 ///----------------------------------------------------------------------------
 
-void parserTLV(Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
+void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
     int length;
     char *body;
     char *data;
+    char* paquet;
     SA servaddr;
     unsigned char chainbuff[1024]={0} ;
     uint16_t l = 0;
@@ -232,12 +233,10 @@ void parserTLV(Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
         case NEIGH_R:
             printf("type 2");
             //Ce TLV demande au récepteur d’envoyer un TLVNeighbour
-
             Voisin *v=hasardVoisin(voisins);
             servaddr.sin_family = AF_INET;
             servaddr.sin_port = htons(v->port);
             servaddr.sin_addr.s_addr = inet_addr(v->ip);
-
             tlv_chain neigh;
             memset(&neigh, 0, sizeof(neigh));
             data=malloc(strlen(v->ip)+2);
@@ -245,7 +244,7 @@ void parserTLV(Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
             memcpy(&data[strlen(v->ip)],&v->port,2);
             add_tlv(&neigh,NEIGH,strlen(data)+2,data);
             tlv_chain_toBuff(&neigh, chainbuff, &l);
-            char* paquet=chain2Paquet(chainbuff,l);
+            paquet=chain2Paquet(chainbuff,l);
             sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)&servaddr,sizeof(servaddr));
             printf("\n paquet type 3 sent  \n");
             break;
@@ -262,11 +261,12 @@ void parserTLV(Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
             servaddr.sin_family = AF_INET;
             servaddr.sin_port = htons(port);
             servaddr.sin_addr.s_addr = inet_addr(ip);
-          //  add_tlv(&netHash,NET_HASH,strlen(),);
-
-
-
-
+            char *net=NetworkHash(datalist);
+            add_tlv(&netHash,NET_HASH,strlen(net),net);
+            tlv_chain_toBuff(&netHash,chainbuff, &l);
+            paquet=chain2Paquet(chainbuff,l);
+            sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)&servaddr,sizeof(servaddr));
+            printf("\n paquet type 4 sent  \n");
             break;
         case NET_HASH:
             printf("type 4");
@@ -315,7 +315,7 @@ char* chain2Paquet (char *chain,uint16_t  len)
 
 }
 
-void parserPaquet(Voisins *voisins,char *buf,SA *addr,int sockfd){
+void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd){
     int index=0;
     tlv_chain list;
     memset(&list, 0, sizeof(list));
@@ -335,7 +335,7 @@ void parserPaquet(Voisins *voisins,char *buf,SA *addr,int sockfd){
 
       while(index < list.used)
       {
-        parserTLV(voisins,&list,index,addr,sockfd);
+        parserTLV(datalist,voisins,&list,index,addr,sockfd);
         index++;
       }
 
@@ -469,7 +469,7 @@ char *Hash(char *data){
     memcpy(res,d,16);
     return res;
 }
-char *concat(Triplet *d){
+char *concatTriplet(Triplet *d){
     uint16_t seq=htons(d->numDeSeq);
     int len=strlen(d->data)+10;
     char *data=malloc(sizeof(char)*len);
@@ -477,6 +477,19 @@ char *concat(Triplet *d){
     memcpy(&data[8],&seq,2);
     memcpy(&data[10],d->data,strlen(d->data));
     return data;
+}
+char *NetworkHash(Data *datalist){
+    Triplet *tmp=datalist->tete;
+    char *hashi;
+    int i=0;
+    char *hashNet=malloc(16*datalist->used);
+    while (tmp!=NULL){
+        hashi=Hash(concatTriplet(tmp));
+        memcpy(&hashNet[i],hashi,16);
+        i+=16;
+        tmp=tmp->suivant;
+    }
+    return Hash(hashNet);
 }
 void insererData(Data *datalist,char *id,uint16_t seq,char *donnee){
     Triplet *t=malloc(sizeof(Triplet));
