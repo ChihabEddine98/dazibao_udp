@@ -16,7 +16,10 @@ int main() {
 char *ip="123456789";
      const char *s = "szczaw";
      unsigned char *d = SHA256(s, strlen(s), 0);
-     printf(" %s",d);
+    for (int i = 0; i <16 ; i++) {
+        printf(" %02x",d[i]);
+
+    }
     /*
     uint16_t port=1212;
     char *date=malloc(strlen(ip)+2);

@@ -14,6 +14,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <openssl/sha.h>
 
 #define SERVER_PORT 1212
 #define SERVER_IP   "81.194.27.155"
@@ -54,15 +55,15 @@ typedef struct
 // objects.
 typedef struct
 {
-    tlv  object[50];
+    tlv  object[MAX_TLV_OBJECTS];
     uint8_t used; // keep track of tlv elements used
 }tlv_chain;
 
 typedef struct  {
-    uint64_t id;
+    char  id[8];
     uint16_t numDeSeq;
     char *data;
-}Triplets;
+}Triplet;
 typedef struct {
     char *ip ;
     uint16_t port;
@@ -75,7 +76,7 @@ typedef struct  {
     uint8_t used;
 }Voisins;
 typedef  struct{
-    Triplets *TableDeData[MAX_DATA];
+    Triplet *TableDeData[MAX_DATA];
     uint8_t used;
 }Data;
 

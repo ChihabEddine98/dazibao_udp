@@ -262,6 +262,8 @@ void parserTLV(Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
             servaddr.sin_family = AF_INET;
             servaddr.sin_port = htons(port);
             servaddr.sin_addr.s_addr = inet_addr(ip);
+          //  add_tlv(&netHash,NET_HASH,strlen(),);
+
 
 
 
@@ -459,6 +461,22 @@ if(rc<0)
         }
         count++;
     }
+}
+
+char *Hash(char *data){
+    unsigned char *d = SHA256(data, strlen(data), 0);
+    char *res=malloc(16*sizeof(char));
+    memcpy(res,d,16);
+    return res;
+}
+char *concat(Triplet *d){
+    uint16_t seq=htons(d->numDeSeq);
+    int len=strlen(d->data)+10;
+    char *data=malloc(sizeof(char)*len);
+    memcpy(data,d->id,8);
+    memcpy(&data[8],&seq,2);
+    memcpy(&data[10],d->data,strlen(d->data));
+    return data;
 }
 
 
