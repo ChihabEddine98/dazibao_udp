@@ -59,10 +59,11 @@ typedef struct
     uint8_t used; // keep track of tlv elements used
 }tlv_chain;
 
-typedef struct  {
+typedef struct Triplet {
     char  id[8];
     uint16_t numDeSeq;
     char *data;
+    struct Triplet *suivant;
 }Triplet;
 typedef struct {
     char *ip ;
@@ -76,7 +77,7 @@ typedef struct  {
     uint8_t used;
 }Voisins;
 typedef  struct{
-    Triplet *TableDeData[MAX_DATA];
+    Triplet *tete;
     uint8_t used;
 }Data;
 
@@ -102,6 +103,7 @@ void addVoisin(Voisins *voisins,char *ip, uint16_t port);
 void miseAjourVoisins(Voisins *voisins,char *ip, uint16_t port);
 void modifierVoisin(Voisins *voisins,char *ip, uint16_t port);
 Voisin *hasardVoisin(Voisins *voisins);
+void insererData(Data *datalist,char *id,uint16_t seq,char *donnee);
 
 
 #endif //PROJETR_BIBLIO_H

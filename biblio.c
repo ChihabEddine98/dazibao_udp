@@ -478,5 +478,39 @@ char *concat(Triplet *d){
     memcpy(&data[10],d->data,strlen(d->data));
     return data;
 }
+void insererData(Data *datalist,char *id,uint16_t seq,char *donnee){
+    Triplet *t=malloc(sizeof(Triplet));
+    t->numDeSeq=seq;
+    memcpy(t->id,id,8);
+    t->data=malloc(strlen(donnee));
+    memcpy(t->data,donnee,strlen(donnee));
+    t->suivant=NULL;
+    Triplet *tmp=datalist->tete;
+    Triplet *pres=NULL;
+    if(tmp==NULL){
+        datalist->tete=t;
+        datalist->used=1;
+        return;
+    }
+    int cnt=1;
+    while (tmp!=NULL && cnt==1){
+        if(strcmp(tmp->id,id)>0){
+            cnt=0;
+        }else {
+            pres = tmp;
+            tmp = tmp->suivant;
+        }
+    }
+    if(tmp==NULL){
+        pres->suivant=t;
+    }else if(pres==NULL){
+        t->suivant=tmp;
+        datalist->tete=t;
+    } else{
+        pres->suivant=t;
+        t->suivant=tmp;
+    }
+    datalist->used+=1;
+}
 
 
