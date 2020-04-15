@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 
 /// ---------------------------------------- fonctions Tlv --------------------------------
@@ -324,15 +325,16 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd)
 
     if(buf[0]==95 && buf[1]==1)
     {
-
+        uint16_t port=ntohs(addr->sin_port);
+        char *ip=inet_ntoa(addr->sin_addr);
+        if(rechercheEmetteur(voisins,ip,port)==1 || voisins->used==15){
+            printf(" \nerror ---- : le paquet est ignoré \n");
+            return;
+        }
+        miseAjourVoisins(voisins,ip,port);
         memcpy(&len,&buf[2],2);
-        printf("la taille %d\n",len==2);
 
         parserV1(buf+4,&list,len);
-        printf("la taille de la list %d\n",list.used);
-
-       // afficher_tlv_chain(&list);
-
       while(index < list.used)
       {
         parserTLV(datalist,voisins,&list,index,addr,sockfd);
@@ -441,6 +443,14 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
         printf("paquet  sent.\n");
     }
 }
+
+void miseAjour20s(Voisins *voisins){
+    while (1){
+        parcoursVoisins(voisins);
+        sleep(20);
+    }
+}
+
 void parcoursVoisins(Voisins *voisins){
 
 struct timespec now;

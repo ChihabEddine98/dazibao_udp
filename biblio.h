@@ -107,6 +107,7 @@ void insererData(Data *datalist,char *id,uint16_t seq,char *donnee);
 char *NetworkHash(Data *datalist);
 char *concatTriplet(Triplet *d);
 char *Hash(char *data);
+void miseAjour20s(Voisins *voisins);
 
 
 #endif //PROJETR_BIBLIO_H
