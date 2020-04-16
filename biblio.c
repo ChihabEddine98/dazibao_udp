@@ -137,34 +137,6 @@ int32_t Buff_to_tlv_chain(const unsigned char *src,  tlv_chain *dest, int32_t le
 
 }
 
-
-
-int32_t afficher_tlv_chain( tlv_chain *a)
-{
-    if(a == NULL)
-        return -1;
-
-
-
-    // go through each used tlv object in the chain
-    for(int i =0; i < a->used; i++)
-    {
-
-        if(a->object[i].type ==0 )
-        {
-
-            printf("type1=%d \n",a->object[i].type);
-
-        }else {
-            // string
-            printf("type1 =%d, %s \n",a->object[i].type,a->object[i].data);
-        }
-    }
-
-
-    return 0;
-}
-
 int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
 {
     if(list == NULL || src == NULL)
@@ -215,12 +187,25 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
 }
 
 ///----------------------------------------------------------------------------
+void sendSerieTlvNode(Data *datalist,int sockfd){
+Triplet *tmp=datalist->tete;
+SA sin;
+while (tmp!=NULL){
+    sin.sin_family = AF_INET;
+   // sin.sin_port = htons(tmp.);
+
+    tmp=tmp->suivant;
+}
+}
 
 void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
     int length;
     char *body;
     char *data;
     char* paquet;
+    char *id;
+    char *h;
+    uint16_t seq;
     SA servaddr;
     unsigned char chainbuff[1024]={0} ;
     uint16_t l = 0;
@@ -272,21 +257,36 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
         case NET_HASH:
             printf("type 4");
             //Ce TLV indique l’idée que se fait l’émetteur de l’état actuel du réseau
+            char *myHash=NetworkHash(datalist);
+            if(strcmp(myHash,list->object[index].data)!=0){
+                tlv_chain netstate;
+                memset(&netstate, 0, sizeof(netstate));
+                add_tlv(&netstate,NET_STATE_R,0,NULL);
+                tlv_chain_toBuff(&netstate, chainbuff, &l);
+                paquet=chain2Paquet(chainbuff,l);
+                sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)addr,sizeof(addr));
+                printf("\n paquet type 5 sent  \n");
+            }
 
             break;
         case NET_STATE_R:
             printf("type 5");
             //Ce TLV demande au récepteur d’envoyer une série de TLVNode Hash
+            sendSerieTlvNode(datalist,sockfd);
             break;
         case NODE_HASH:
             printf("type 6");
            //Ce TLV est envoyé en réponse à un TLVNetwork State Request.
-
+            id=malloc(sizeof(char)*8);
+            memcpy(id,list->object[index].data,8);
+            memcpy(&seq,&(list->object[index].data[8]),2);
+            seq=ntohs(seq);
+            h=malloc(sizeof(char)*16);
+            memcpy(h,&(list->object[index].data[10]),16);
             break;
         case NODE_STATE_R:
             printf("type 7");
             //Ce TLV demande au récepteur d’envoyer un TLVNode Statedécrivant l’état du nœud indiquépar le champNode Id
-
             break;
         case NODE_STATE:
             printf("type 8");
@@ -300,6 +300,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
     }
 
 }
+
 
 char* chain2Paquet (char *chain,uint16_t  len)
 {

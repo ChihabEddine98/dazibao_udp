@@ -47,7 +47,7 @@ typedef struct sockaddr_in SA ;
 typedef struct
 {
     int8_t type;    // type
-    uint8_t * data; // pointer to data
+    char * data; // pointer to data
     int16_t size;   // size of data
 }tlv;
 
