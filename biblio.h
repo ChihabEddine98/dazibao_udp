@@ -108,6 +108,7 @@ char *NetworkHash(Data *datalist);
 char *concatTriplet(Triplet *d);
 char *Hash(char *data);
 void miseAjour20s(Voisins *voisins);
+void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr);
 
 
 #endif //PROJETR_BIBLIO_H

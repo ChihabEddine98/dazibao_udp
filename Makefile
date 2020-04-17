@@ -12,7 +12,7 @@ server: server.o biblio.o
 		gcc -o server server.o biblio.o
 
 client: client.o biblio.o
-		gcc -o client client.o biblio.o
+		gcc -o client client.o biblio.o  -lssl -lcrypto
 
 main.o: main.c biblio.c $(HEADERS) 
 			gcc -o main.o -c main.c 

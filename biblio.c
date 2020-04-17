@@ -187,15 +187,42 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
 }
 
 ///----------------------------------------------------------------------------
-void sendSerieTlvNode(Data *datalist,int sockfd){
-Triplet *tmp=datalist->tete;
-SA sin;
-while (tmp!=NULL){
-    sin.sin_family = AF_INET;
-   // sin.sin_port = htons(tmp.);
 
+char *Hash(char *data){
+    unsigned char *d = SHA256(data, strlen(data), 0);
+    char *res=malloc(16*sizeof(char));
+    memcpy(res,d,16);
+    return res;
+}
+char *concatTriplet(Triplet *d){
+    uint16_t seq=htons(d->numDeSeq);
+    int len=strlen(d->data)+10;
+    char *data=malloc(sizeof(char)*len);
+    memcpy(data,d->id,8);
+    memcpy(&data[8],&seq,2);
+    memcpy(&data[10],d->data,strlen(d->data));
+    return data;
+}
+void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr){
+Triplet *tmp=datalist->tete;
+    tlv_chain chaine;
+    memset(&chaine, 0, sizeof(chaine));
+    char *h;
+    char *data=malloc(sizeof(char)*26);
+    unsigned char chainbuff[1024]={0} ;
+    uint16_t l = 0;
+while (tmp!=NULL){
+    h=Hash(concatTriplet(tmp));
+    uint16_t seq=htons(tmp->numDeSeq);
+    memcpy(data,tmp->id,8);
+    memcpy(&data[8],&seq,2);
+    memcpy(&data[10],h,16);
+    add_tlv(&chaine,NODE_HASH,26,data);
     tmp=tmp->suivant;
 }
+    tlv_chain_toBuff(&chaine, chainbuff, &l);
+    char *paquet=chain2Paquet(chainbuff,l);
+    sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)addr,sizeof(addr));
 }
 
 void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
@@ -272,7 +299,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
         case NET_STATE_R:
             printf("type 5");
             //Ce TLV demande au récepteur d’envoyer une série de TLVNode Hash
-            sendSerieTlvNode(datalist,sockfd);
+            sendSerieTlvNode(datalist,sockfd,addr);
             break;
         case NODE_HASH:
             printf("type 6");
@@ -474,21 +501,7 @@ if(rc<0)
     }
 }
 
-char *Hash(char *data){
-    unsigned char *d = SHA256(data, strlen(data), 0);
-    char *res=malloc(16*sizeof(char));
-    memcpy(res,d,16);
-    return res;
-}
-char *concatTriplet(Triplet *d){
-    uint16_t seq=htons(d->numDeSeq);
-    int len=strlen(d->data)+10;
-    char *data=malloc(sizeof(char)*len);
-    memcpy(data,d->id,8);
-    memcpy(&data[8],&seq,2);
-    memcpy(&data[10],d->data,strlen(d->data));
-    return data;
-}
+
 char *NetworkHash(Data *datalist){
     Triplet *tmp=datalist->tete;
     char *hashi;
