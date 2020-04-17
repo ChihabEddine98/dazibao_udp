@@ -225,6 +225,18 @@ while (tmp!=NULL){
     sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)addr,sizeof(addr));
 }
 
+Triplet *Getdataintable(Data *datalist,char *id){
+    Triplet *tmp=datalist->tete;
+    Triplet *res=NULL;
+    while (tmp!=NULL){
+        if(strcmp(tmp->id,id)==0) return tmp;
+        tmp=tmp->suivant;
+    }
+    return res;
+
+}
+
+
 void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
     int length;
     char *body;
@@ -310,6 +322,20 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             seq=ntohs(seq);
             h=malloc(sizeof(char)*16);
             memcpy(h,&(list->object[index].data[10]),16);
+            Triplet *d=Getdataintable(datalist,id);
+            if(d==NULL){
+                /// rien a faire
+            } else if (strcmp(h,Hash(concatTriplet(d)))!=0){
+                tlv_chain netstatereq;
+                memset(&netstatereq, 0, sizeof(netstatereq));
+                add_tlv(&netstatereq,NODE_STATE_R,8,id);
+                tlv_chain_toBuff(&netstatereq, chainbuff, &l);
+                paquet=chain2Paquet(chainbuff,l);
+                sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)addr,sizeof(addr));
+                printf("\n paquet type 7 sent  \n");
+            } else {
+                /// rien a faire
+            }
             break;
         case NODE_STATE_R:
             printf("type 7");
