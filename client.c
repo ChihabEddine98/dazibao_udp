@@ -91,19 +91,42 @@ int main() {
     tlv_chain chain1, chain2;
     memset(&chain1, 0, sizeof(chain1));
     memset(&chain2, 0, sizeof(chain2));
-    unsigned char chainbuff[1024]={0} ;
+    unsigned char *chainbuff=malloc(1024) ;
     uint16_t l = 0;
 
-    tlv_chain_add_str(&chain1,"ya wediii jay7a");
-    //add_tlv(&chain1,WARNING,strlen(msg),msg);
+    char* data=" Rani Wliiiit !";
+    char* nID="0c:29:0e";
+    u_int16_t seqNo=htons(500);
+    char *nHash=Hash("Chihab");
+    
+    tlv_chain node_state;
+    memset(&node_state, 0, sizeof(node_state));
+
+    char* toSend=malloc(26+strlen(data));
+    memcpy(toSend,nID,8);
+    memcpy(toSend+8,&seqNo,2);
+    memcpy(toSend+10,nHash,16);
+    memcpy(toSend+26,data,strlen(data));
 
 
-    tlv_chain_toBuff(&chain1, chainbuff, &l);
+    printf("\n toSEND : %d\n",strlen(toSend));
+    
+    // tlv_chain_add_str(&chain1,"ya wediii jay7a");
+    add_tlv(&node_state,NODE_STATE,strlen(toSend),toSend);
+
+
+
+    tlv_chain_toBuff(&node_state, chainbuff, &l);
+
+
+    printf(" \n L=%d \n",l );
+    
     char* paquet=chain2Paquet(chainbuff,l);
 
+    printf("\n paquet : %d\n",strlen(paquet));
 
 
-    sendto(sockfd, (char *)paquet, sizeof(paquet),
+    sendto(sockfd, (char *)paquet, strlen(paquet),
                MSG_CONFIRM, (const struct sockaddr *) &servaddr,
                sizeof(servaddr));
         printf("paquet  sent.\n");

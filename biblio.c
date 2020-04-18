@@ -66,13 +66,13 @@ int32_t free_tlv_list( tlv_chain *a)
 }
 
 // serialize the tlv chain into byte array
-int32_t tlv_chain_toBuff( tlv_chain *a, unsigned char *dest, int32_t *count)
+int16_t tlv_chain_toBuff( tlv_chain *a, unsigned char *dest, int16_t *count)
 {
     if(a == NULL || dest == NULL)
         return -1;
 
     // Number of bytes serialized
-    int32_t counter = 0;
+    int16_t counter = 0;
 
     for(int i = 0; i < a->used; i++)
     {
@@ -392,8 +392,8 @@ char* chain2Paquet (char *chain,uint16_t  len)
     printf(" chain 2 paquet");
 
     char *res=malloc(sizeof(char)*PAQ_SIZE);
-   res[0]=0b01011111;
-   res[1]=1;
+    res[0]=0b01011111;
+    res[1]=1;
     memcpy(res+2,&len,2);
     memcpy(res+4,chain,len);
 
