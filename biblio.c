@@ -73,8 +73,8 @@ int16_t tlv_chain_toBuff( tlv_chain *a, unsigned char *dest, int16_t *count)
 
     // Number of bytes serialized
     int16_t counter = 0;
-    uint16_t lBe;
-
+    short lBe;
+char len[2];
     for(int i = 0; i < a->used; i++)
     {
         dest[counter] = a->object[i].type;
@@ -82,7 +82,8 @@ int16_t tlv_chain_toBuff( tlv_chain *a, unsigned char *dest, int16_t *count)
        if(a->object[i].type!=0) {
           
            lBe=htons(a->object[i].size);
-           memcpy(&dest[counter], &lBe, 1);
+           memcpy(len,&lBe,2);
+           memcpy(&dest[counter], &len[1], 1);
            counter += 1;
            if(a->object[i].type!=2 && a->object[i].type!=5) {
                memcpy(&dest[counter], a->object[i].data, a->object[i].size);
@@ -228,7 +229,27 @@ while (tmp!=NULL){
     char *paquet=chain2Paquet(chainbuff,l);
     sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)addr,sizeof(addr));
 }
-
+void nodestate(char *buffer,char *data,char *id,short seq,char *hash,int *size){
+int cpt;
+    short i=strlen(data)+28;
+    short i2=htons(i);
+    buffer[0]=95;
+    buffer[1]=1;
+    memcpy(&buffer[2],&i2,2);
+    buffer[4]=0b0001000;
+    short j=strlen(data)+26;
+    short j2=htons(j);
+    char length[2];
+    memcpy(length,&j2,2);
+    memcpy(&buffer[5],&length[1],1);
+    memcpy(&buffer[6],id,8);
+    short sequence=htons(seq);
+    memcpy(&buffer[14],&sequence,2);
+    memcpy(&buffer[16],hash,16);
+    memcpy(&buffer[32],data,strlen(data));
+cpt=32+strlen(data);
+*size=cpt;
+}
 Triplet *Getdataintable(Data *datalist,char *id){
     Triplet *tmp=datalist->tete;
     Triplet *res=NULL;
@@ -394,12 +415,11 @@ char* chain2Paquet (char *chain,uint16_t  len)
 {
 
     char *res=malloc(sizeof(char)*PAQ_SIZE);
-    uint16_t lBe=htons(len);
+    short lBe=htons(len);
     res[0]=0b01011111;
     res[1]=1;
     memcpy(res+2,&lBe,2);
     memcpy(res+4,chain,len);
-
 
     return res;
 

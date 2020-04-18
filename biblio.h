@@ -112,6 +112,6 @@ char *concatTriplet(Triplet *d);
 char *Hash(char *data);
 void miseAjour20s(Voisins *voisins);
 void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr);
-
+void nodestate(char *buffer,char *data,char *id,short seq,char *hash,int *size);
 
 #endif //PROJETR_BIBLIO_H
