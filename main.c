@@ -13,6 +13,7 @@
 
 int main() {
 
+
 char *ip="123456789";
      const char *s = "szczaw";
      unsigned char *d =Hash(s);
