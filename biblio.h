@@ -34,6 +34,9 @@
 #define NODE_STATE_R 7  
 #define NODE_STATE 8
 #define WARNING 9
+#define MY_NODE_ID aa82adc85debf5dae // >>> import uuid
+                                     // print(uuid.uuid1()) 
+                                     
 
 
 typedef struct sockaddr_in SA ;
