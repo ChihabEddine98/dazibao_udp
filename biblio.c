@@ -599,9 +599,10 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
     }
 }
 
-void miseAjour20s(Voisins *voisins){
+void miseAjour20s(Voisins *voisins,int sockfd){
     while (1){
         parcoursVoisins(voisins);
+        moinsde5voisins(voisins,sockfd);
         sleep(20);
     }
 }
