@@ -94,11 +94,11 @@ int main() {
     unsigned char *chainbuff=malloc(1024) ;
     uint16_t l = 0;
 
-    char* data="bingo me";
-    char* nID="0e:7e:da";
-    u_int16_t seqNo=12;
-    char *nHash=Hash("Chihab");
-/*
+    char* data="mehdi raho 3a9al";
+    char* nID="0e:7e:d4";
+    u_int16_t seqNo=1300;
+    char *nHash=Hash("aymen");
+
     tlv_chain node_state;
     memset(&node_state, 0, sizeof(node_state));
 
@@ -122,13 +122,13 @@ int main() {
     char* paquet=chain2Paquet(chainbuff,l);
 
   //  printf("\n paquet : %d\n",strlen(paquet));
-*/
+
 unsigned char buff[1024];
 int size=0;
 nodestate(buff,data,nID,seqNo,nHash,&size);
     printf("\n sizzzze : %d\n",size);
 
-    sendto(sockfd, (char *)buff,size,
+    sendto(sockfd, (char *)paquet,size,
                MSG_CONFIRM, (const struct sockaddr *) &servaddr,
                sizeof(servaddr));
         printf("paquet  sent.\n");
