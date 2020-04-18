@@ -94,9 +94,9 @@ int main() {
     unsigned char *chainbuff=malloc(1024) ;
     uint16_t l = 0;
 
-    char* data="Aymen T'es recherché en mailling list ...";
+    char* data="chihab raho hna w chihab 3tayy";
     char* nID="0e:7e:d5";
-    u_int16_t seqNo=19241924;
+    u_int16_t seqNo=199023;
     char *nHash=Hash("aymen");
 
     tlv_chain node_state;
