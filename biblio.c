@@ -227,7 +227,7 @@ while (tmp!=NULL){
 }
     tlv_chain_toBuff(&chaine, chainbuff, &l);
     char *paquet=chain2Paquet(chainbuff,l);
-    sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)addr,sizeof(addr));
+    sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,sizeof(addr));
 }
 void nodestate(char *buffer,char *data,char *id,short seq,char *hash,int *size){
     int cpt;
@@ -261,6 +261,26 @@ Triplet *Getdataintable(Data *datalist,char *id){
 
 }
 
+void supprimerData(Data *datalist,char *id){
+    Triplet *tmp=datalist->tete;
+    Triplet *pres=NULL;
+    int count=0;
+    while(tmp!=NULL && count==0) {
+        if (strcmp(id, tmp->id) == 0) {
+            count = 1;
+        } else {
+            pres = tmp;
+            tmp = tmp->suivant;
+        }
+    }
+    if(pres==NULL){
+        datalist->tete=datalist->tete->suivant;
+    } else if (tmp!=NULL){
+        pres->suivant=tmp->suivant;
+    }
+    return;
+}
+
 void NodeState(Data *datalist,char *node,int len,SA *addr){
     char *id=malloc(sizeof(char)*8);
     memcpy(id,node,8);
@@ -275,11 +295,23 @@ void NodeState(Data *datalist,char *node,int len,SA *addr){
     Triplet *d=Getdataintable(datalist,id);
     if(d!=NULL){
         if (strcmp(h,Hash(concatTriplet(d)))!=0){
-
+         if(strcmp(id,"0e:7e:d5")==0){// cas 1
+             if((seq-d->numDeSeq)%(int)(pow(2,16))<32768){
+                 d->numDeSeq=(seq+1)%(int)(pow(2,16));
+             }
+         }else{// cas 2
+             if((seq-d->numDeSeq)%(int)(pow(2,16))<32768){
+                 d->numDeSeq=(seq+1)%(int)(pow(2,16));
+                 supprimerData(datalist,id);
+                 insererData(datalist,id,seq,d->data);
+             }
+         }
 
         }else{
-
+       /// rien a faire
         }
+    }else{
+        insererData(datalist,id,seq,data);
     }
 
 
@@ -313,31 +345,35 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             memset(&neigh, 0, sizeof(neigh));
             data=malloc(strlen(v->ip)+2);
             memcpy(data,v->ip,strlen(v->ip));
-            memcpy(&data[strlen(v->ip)],&v->port,2);
-            add_tlv(&neigh,NEIGH,strlen(data)+2,data);
+            short p=v->port;
+            short p2=htons(p);
+            memcpy(&data[strlen(v->ip)],&p2,2);
+            add_tlv(&neigh,NEIGH,strlen(data),data);
             tlv_chain_toBuff(&neigh, chainbuff, &l);
             paquet=chain2Paquet(chainbuff,l);
-            sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)&servaddr,sizeof(servaddr));
+            sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)&servaddr,sizeof(servaddr));
             printf("\n paquet type 3 sent  \n");
             break;
         case NEIGH:
             printf("type 3\n");
             tlv_chain netHash;
+            memset(&netHash, 0, sizeof(netHash));
             //Ce TLV contient l’adresse d’un voisin vivant de l’émetteur
              data=list->object[index].data;
-             int16_t len=list->object[index].size;
+             int8_t len=ntohs(list->object[index].size);
              uint16_t port=0;
              char *ip=malloc(len-2);
              memcpy(ip,data,len-2);
              memcpy(&port,&data[len-2],2);
+             short port2=htons(port);
             servaddr.sin_family = AF_INET;
-            servaddr.sin_port = htons(port);
+            servaddr.sin_port = htons(port2);
             servaddr.sin_addr.s_addr = inet_addr(ip);
             char *net=NetworkHash(datalist);
             add_tlv(&netHash,NET_HASH,strlen(net),net);
             tlv_chain_toBuff(&netHash,chainbuff, &l);
             paquet=chain2Paquet(chainbuff,l);
-            sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)&servaddr,sizeof(servaddr));
+            sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)&servaddr,sizeof(servaddr));
             printf("\n paquet type 4 sent  \n");
             break;
         case NET_HASH:
@@ -350,7 +386,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 add_tlv(&netstate,NET_STATE_R,0,NULL);
                 tlv_chain_toBuff(&netstate, chainbuff, &l);
                 paquet=chain2Paquet(chainbuff,l);
-                sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)addr,sizeof(addr));
+                sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,sizeof(addr));
                 printf("\n paquet type 5 sent  \n");
             }
 
@@ -378,7 +414,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 add_tlv(&netstatereq,NODE_STATE_R,8,id);
                 tlv_chain_toBuff(&netstatereq, chainbuff, &l);
                 paquet=chain2Paquet(chainbuff,l);
-                sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)addr,sizeof(addr));
+                sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,sizeof(addr));
                 printf("\n paquet type 7 sent  \n");
             } else {
                 /// rien a faire
@@ -387,6 +423,23 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
         case NODE_STATE_R:
             printf("type 7");
             //Ce TLV demande au récepteur d’envoyer un TLVNode Statedécrivant l’état du nœud indiquépar le champNode Id
+            char idnode=list->object[index].data;
+            tlv_chain node_state;
+            memset(&node_state, 0, sizeof(node_state));
+            Triplet *d1=Getdataintable(datalist,id);
+            char* toSend=malloc(26+strlen(data));
+            memcpy(toSend,idnode,8);
+            uint16_t seqno=htons(d1->numDeSeq);
+            memcpy(toSend+8,&seqno,2);
+            char *nHash=Hash(concatTriplet(d1));
+            memcpy(toSend+10,nHash,16);
+            memcpy(toSend+26,d1->data,strlen(d1->data));
+            add_tlv(&node_state,NODE_STATE,strlen(toSend),toSend);
+            tlv_chain_toBuff(&node_state, chainbuff, &l);
+            paquet=chain2Paquet(chainbuff,l);
+            sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,sizeof(addr));
+            printf("\n paquet type 8 sent  \n");
+
             break;
         case NODE_STATE:
             printf("type 8");

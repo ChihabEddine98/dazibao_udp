@@ -94,7 +94,7 @@ int main() {
     unsigned char *chainbuff=malloc(1024) ;
     uint16_t l = 0;
 
-    char* data="Aymen T'es recherché en mailling list :D";
+    char* data="Aymen T'es recherché en mailling list ...";
     char* nID="0e:7e:d5";
     u_int16_t seqNo=19241924;
     char *nHash=Hash("aymen");
@@ -125,10 +125,13 @@ int main() {
 
 unsigned char buff[1024];
 int size=0;
-nodestate(buff,data,nID,seqNo,nHash,&size);
+//nodestate(buff,data,nID,seqNo,nHash,&size);
     printf("\n sizzzze : %d\n",size);
 
-    sendto(sockfd, (char *)paquet,size,
+
+    printf("\n last : %d\n",l);
+
+    sendto(sockfd, (char *)paquet,l+4,
                MSG_CONFIRM, (const struct sockaddr *) &servaddr,
                sizeof(servaddr));
         printf("paquet  sent.\n");
