@@ -94,8 +94,8 @@ int main() {
     unsigned char *chainbuff=malloc(1024) ;
     uint16_t l = 0;
 
-    char* data=" Rani Wliiiit !";
-    char* nID="0c:29:0e";
+    char* data=" Rani Wliiiit ! ";
+    char* nID="0e:7e:dd";
     u_int16_t seqNo=htons(500);
     char *nHash=Hash("Chihab");
     
@@ -119,14 +119,13 @@ int main() {
     tlv_chain_toBuff(&node_state, chainbuff, &l);
 
 
-    printf(" \n L=%d \n",l );
     
     char* paquet=chain2Paquet(chainbuff,l);
 
     printf("\n paquet : %d\n",strlen(paquet));
 
 
-    sendto(sockfd, (char *)paquet, strlen(paquet),
+    sendto(sockfd, (char *)paquet, l,
                MSG_CONFIRM, (const struct sockaddr *) &servaddr,
                sizeof(servaddr));
         printf("paquet  sent.\n");

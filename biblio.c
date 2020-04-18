@@ -73,14 +73,17 @@ int16_t tlv_chain_toBuff( tlv_chain *a, unsigned char *dest, int16_t *count)
 
     // Number of bytes serialized
     int16_t counter = 0;
+    uint16_t lBe;
 
     for(int i = 0; i < a->used; i++)
     {
         dest[counter] = a->object[i].type;
         counter++;
        if(a->object[i].type!=0) {
-           memcpy(&dest[counter], &a->object[i].size, 2);
-           counter += 2;
+          
+           lBe=htons(a->object[i].size);
+           memcpy(&dest[counter], &lBe, 1);
+           counter += 1;
            if(a->object[i].type!=2 && a->object[i].type!=5) {
                memcpy(&dest[counter], a->object[i].data, a->object[i].size);
                counter += a->object[i].size;
@@ -389,12 +392,12 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
 
 char* chain2Paquet (char *chain,uint16_t  len)
 {
-    printf(" chain 2 paquet");
 
     char *res=malloc(sizeof(char)*PAQ_SIZE);
+    uint16_t lBe=htons(len);
     res[0]=0b01011111;
     res[1]=1;
-    memcpy(res+2,&len,2);
+    memcpy(res+2,&lBe,2);
     memcpy(res+4,chain,len);
 
 
