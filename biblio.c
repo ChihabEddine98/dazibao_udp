@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include "math.h"
 
 
 /// ---------------------------------------- fonctions Tlv --------------------------------
@@ -236,7 +237,36 @@ Triplet *Getdataintable(Data *datalist,char *id){
 
 }
 
+void NodeState(Data *datalist,char *node,int len,SA *addr){
+    char *id=malloc(sizeof(char)*8);
+    memcpy(id,node,8);
+    uint16_t seq;
+    memcpy(&seq,&node[8],2);
+    seq=ntohs(seq);
+    char *h=malloc(sizeof(char)*16);
+    memcpy(h,&node[10],16);
+    len=len-26;
+    char *data=malloc(sizeof(char)*len);
+    memcpy(data,&node[26],len);
+    Triplet *d=Getdataintable(datalist,id);
+    if(d!=NULL){
+        if (strcmp(h,Hash(concatTriplet(d)))!=0){
+             Triplet *t=datalist->tete;
+             while (t!=NULL){
+                 if(strcmp(d->id,t->id)==0){
+                     if(d->numDeSeq>=t->numDeSeq){
+                         t->numDeSeq=(d->numDeSeq+1)%(int)(pow(2,16));
+                     }
+                 } else{
+                    
+                 }
+                 t=t->suivant;
+             }
+        }
+    }
 
+
+}
 void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
     int length;
     char *body;
@@ -344,6 +374,8 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
         case NODE_STATE:
             printf("type 8");
              // Ce TLV est envoyé en réponse à un TLVNode State Request
+             NodeState(datalist,list->object[index].data,list->object[index].size,addr);
+
             break;
         case WARNING:
             printf("type 9");
