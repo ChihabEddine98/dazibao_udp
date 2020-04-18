@@ -275,17 +275,10 @@ void NodeState(Data *datalist,char *node,int len,SA *addr){
     Triplet *d=Getdataintable(datalist,id);
     if(d!=NULL){
         if (strcmp(h,Hash(concatTriplet(d)))!=0){
-             Triplet *t=datalist->tete;
-             while (t!=NULL){
-                 if(strcmp(d->id,t->id)==0){
-                     if(d->numDeSeq>=t->numDeSeq){
-                         t->numDeSeq=(d->numDeSeq+1)%(int)(pow(2,16));
-                     }
-                 } else{
-                    
-                 }
-                 t=t->suivant;
-             }
+
+
+        }else{
+
         }
     }
 
