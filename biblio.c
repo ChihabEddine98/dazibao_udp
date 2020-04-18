@@ -230,7 +230,7 @@ while (tmp!=NULL){
     sendto(sockfd,(const char *)paquet,PAQ_SIZE,0,(const SA *)addr,sizeof(addr));
 }
 void nodestate(char *buffer,char *data,char *id,short seq,char *hash,int *size){
-int cpt;
+    int cpt;
     short i=strlen(data)+28;
     short i2=htons(i);
     buffer[0]=95;
@@ -247,8 +247,8 @@ int cpt;
     memcpy(&buffer[14],&sequence,2);
     memcpy(&buffer[16],hash,16);
     memcpy(&buffer[32],data,strlen(data));
-cpt=32+strlen(data);
-*size=cpt;
+    cpt=32+strlen(data);
+    *size=cpt;
 }
 Triplet *Getdataintable(Data *datalist,char *id){
     Triplet *tmp=datalist->tete;
