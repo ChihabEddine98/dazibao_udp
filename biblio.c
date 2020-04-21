@@ -579,12 +579,7 @@ Voisin *hasardVoisin(Voisins *voisins){
 
 }
 void moinsde5voisins(Voisins *voisins,int sockfd){
-
-    if(voisins->used==0)
-    {
-        return;
-    }
-
+    if (voisins->used==0) return;
     if (voisins->used<5){
         struct sockaddr_in servaddr;
         Voisin *v=hasardVoisin(voisins);
@@ -603,16 +598,15 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
         sendto(sockfd, (char *)paquet, sizeof(paquet),0, (const struct sockaddr *) &servaddr,sizeof(servaddr));
         printf("paquet  sent.\n");
     }
-
-
 }
 
 void *miseAjour20s(void *args){
     arg *argss = (arg *)args;
     while (1){
+        printf("\n on est la ");
         parcoursVoisins(argss->arg1);
         moinsde5voisins(argss->arg1,argss->sockfd);
-        sleep(1);
+        sleep(20);
     }
    return NULL;
 }
