@@ -378,11 +378,11 @@ int nombreChiffres ( int nombre )
 }
 unsigned char* parseIp(unsigned char* ipHex)
 {
-    for (int i = 0; i <16 ; i++) {
-        printf(" %02x",ipHex[i]);
-        }
+    // for (int i = 0; i <16 ; i++) {
+    //     printf(" %02x",ipHex[i]);
+    //     }
 
-    printf("\n");
+    // printf("\n");
     unsigned char* ipRes=malloc(45*sizeof(char));
     unsigned char* initMapped="00000000000000000000ffff";
     unsigned char* initOurIp=malloc(12);
@@ -422,14 +422,14 @@ unsigned char* parseIp(unsigned char* ipHex)
                   sprintf(&ipRes[j],"%d.",k);
                   j+=nombreChiffres(k)+1;
                }
-              return ipRes;
             }
+            return ipRes;
 
-            for (size_t i = 12,j=0; i < 16,j<8 ; i++,j+=2)
-            {
-               sprintf(&ipRes[i],"%d.",ipHex[i]);
+            // for (size_t i = 12,j=0; i < 16,j<8 ; i++,j+=2)
+            // {
+            //    sprintf(&ipRes[i],"%d.",ipHex[i]);
             
-            }
+            // }
             
         }
         else{
@@ -437,7 +437,7 @@ unsigned char* parseIp(unsigned char* ipHex)
             unsigned char* h=malloc(4);
             for (size_t i = 0; i < 16; i+=2)
             {
-               printf("%02x%02x:",ipHex[i],ipHex[i+1]);
+              
                if(i==14)
                {
                   sprintf(&ipRes[j],"%02x%02x",ipHex[i],ipHex[i+1]);
@@ -457,12 +457,6 @@ unsigned char* parseIp(unsigned char* ipHex)
         
         
         // if ipv6 or ipv4 mapped !
-
-    printf("\n our ip :\n ");
-
-        for (int i = 0; i <12 ; i++) {
-        printf(" %02x",initOurIp[i]);
-        }
 
     return ipRes;
 }
@@ -513,7 +507,6 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             memset(&netHash, 0, sizeof(netHash));
             printf("\n ip=%s",list->object[index].data);
             //Ce TLV contient l’adresse d’un voisin vivant de l’émetteur
-
             data=list->object[index].data;
              int8_t length=list->object[index].size;
             printf("\n len=%d",l);
@@ -525,10 +518,12 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                   memcpy(&port,&data[length-2],2);
                   short port2=htons(port);
                   printf("\n port =%d and ip=",port2);
+                  printf("\n ip formatted : %s\n",parseIp(ip));
+
                 //   for (int i = 0; i <16 ; i++) {
                 //      printf(" %02x",ip[i]);
                 //    }
-                   parseIp(ip);
+                
                 servaddr.sin_family = AF_INET;
                  servaddr.sin_port = htons(port2);
                  servaddr.sin_addr.s_addr = inet_addr(ip);
