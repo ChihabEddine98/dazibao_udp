@@ -488,8 +488,10 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd)
         }
         miseAjourVoisins(voisins,ip,port);
         memcpy(&len,&buf[2],2);
-
+        len=ntohs(len);
         parserV1(buf+4,&list,len);
+        printf("\n usedd :%d \n",list.used);
+        
       while(index < list.used)
       {
         parserTLV(datalist,voisins,&list,index,addr,sockfd);
@@ -603,7 +605,6 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
 void *miseAjour20s(void *args){
     arg *argss = (arg *)args;
     while (1){
-        printf("\n on est la ");
         parcoursVoisins(argss->arg1);
         moinsde5voisins(argss->arg1,argss->sockfd);
         sleep(20);

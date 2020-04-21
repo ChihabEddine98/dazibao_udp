@@ -45,11 +45,30 @@ int main() {
         voisins->used=0;
 
         unsigned char *chainbuff=malloc(1024) ;
+        memset(chainbuff,0,1024);
         uint16_t l = 0;
         char *paquet;
         int n=0;
-        //n=sendto(sockfd, (char *)paquet,l+4,MSG_CONFIRM, (const struct sockaddr *) &servaddr,sizeof(servaddr));
-       // if (n>0) printf("paquet  sent.\n");
+
+        tlv_chain neigh;
+        memset(&neigh, 0, sizeof(neigh));
+        add_tlv(&neigh,NEIGH_R,0,NULL);
+        tlv_chain_toBuff(&neigh, chainbuff, &l);
+        paquet=chain2Paquet(chainbuff,l);
+        n=sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)&servaddr,sizeof(servaddr));
+        printf("\n paquet type 2 sent  \n");
+
+        // unsigned char req[1024];
+        // memset(req, 0, 6);
+        // req[0] = 95;
+        // req[1] = 1;
+
+        // const char *s = "szczaw";
+        // unsigned char *d = SHA256(s, strlen(s), 0)
+
+
+       // n=sendto(sockfd, (char *)paquet,l+4,MSG_CONFIRM, (const struct sockaddr *) &servaddr,sizeof(servaddr));
+       if (n>0) printf("paquet  sent.\n");
         // thread20s
         pthread_t thread1;
         arg *arg1=malloc(sizeof(arg));
@@ -65,6 +84,7 @@ int main() {
     FD_ZERO(&sockActuels);
     FD_SET(sockfd,&sockActuels);
 
+    int recvLen=0;
 
 
     while (1){
@@ -83,10 +103,11 @@ int main() {
             {
                 if(i== sockfd)
                 {
-                    n = recvfrom(sockfd, (char *)buffer, MAXLINE,0, (struct sockaddr *) &servaddr,sizeof(servaddr));
+                    n = recvfrom(sockfd, (char *)buffer, MAXLINE,MSG_WAITALL, (SA*) &servaddr,&recvLen);
+                    printf(" \n recieved %d bytes \n",n);
                     if( n < 0 )
                     {
-                        perror(" Recv From bug !");
+                        perror(" Recv From bug ");
 
                     }
                     else
