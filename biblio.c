@@ -781,11 +781,17 @@ Voisin *hasardVoisin(Voisins *voisins){
 void moinsde5voisins(Voisins *voisins,int sockfd){
     if (voisins->used==0) return;
     if (voisins->used<5){
-        struct sockaddr_in servaddr;
+        SA servaddr;
         Voisin *v=hasardVoisin(voisins);
-        servaddr.sin_family = AF_INET;
-        servaddr.sin_port = htons(v->port);
-        servaddr.sin_addr.s_addr = inet_addr(v->ip);
+
+        servaddr.sin6_family = AF_INET6;
+        servaddr.sin6_port = htons(v->port);
+        int p;
+        p=inet_pton(AF_INET6,v->ip,&servaddr.sin6_addr);
+        if(p==-1)
+        {
+            perror(" ip err ");
+        }
         int n, len;
         tlv_chain chain1, chain2;
         memset(&chain1, 0, sizeof(chain1));
@@ -795,10 +801,13 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
         add_tlv(&chain1,NEIGH_R,0,NULL);
         tlv_chain_toBuff(&chain1, chainbuff, &l);
         char* paquet=chain2Paquet(chainbuff,l);
-        sendto(sockfd, (char *)paquet, sizeof(paquet),0, (const struct sockaddr *) &servaddr,sizeof(servaddr));
-        printf("paquet  sent.\n");
-    }
-}
+
+        if(sendto(sockfd, (char *)paquet, sizeof(paquet),0, (const struct sockaddr *) &servaddr,sizeof(servaddr))>0)
+        {
+            printf("paquet 2 (NEIGH_REQUEST) sent.\n");
+        
+        }
+}}
 
 void *miseAjour20s(void *args){
     arg *argss = (arg *)args;
