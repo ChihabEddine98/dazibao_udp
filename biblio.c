@@ -689,7 +689,7 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd)
         memcpy(&len,&buf[2],2);
         len=ntohs(len);
         parserV1(buf+4,&list,len);
-        printf("\nused=%d\n",list.used);
+        printf("\nuseddd=%d\n",list.used);
       while(index < list.used)
       {
         parserTLV(datalist,voisins,&list,index,addr,sockfd);
