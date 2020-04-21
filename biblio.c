@@ -407,7 +407,8 @@ unsigned char* parseIp(unsigned char* ipHex)
     
         if(strcmp(cmp,initMapped)==0)
         {
-            j=0;
+            j=7;
+            memcpy(ipRes,"::ffff:",7);
             for (size_t i = 12; i < 16; i++)
             {
                int k=ipHex[i];
@@ -516,8 +517,8 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                   memcpy(ip,data,length-2);
 
                   memcpy(&port,&data[length-2],2);
-                  short port2=htons(port);
-                  printf("\n port =%d and ip=",port2);
+                  short port2=ntohs(port);
+                  printf("\n port =%d ",port);
                   printf("\n ip formatted : %s\n",parseIp(ip));
 
                 //   for (int i = 0; i <16 ; i++) {
@@ -526,7 +527,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 
                 servaddr.sin_family = AF_INET;
                  servaddr.sin_port = htons(port2);
-                 servaddr.sin_addr.s_addr = inet_addr(ip);
+                 servaddr.sin_addr.s_addr = inet_addr(parseIp(ip));
 
             char *net=NetworkHash(datalist);
 
