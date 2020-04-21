@@ -7,8 +7,12 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include "biblio.h"
 #include <pthread.h>
+#include "biblio.h"
+#include <sys/select.h>
+
+
+
 
 #define PORT	 8080
 #define MAXLINE 1024
@@ -55,14 +59,46 @@ int main() {
         return EXIT_FAILURE;
        }
 
+    fd_set sockLibres,sockActuels;
+
+    FD_ZERO(&sockActuels);
+    FD_SET(sockfd,&sockActuels);     
+
+
 
     while (1){
        // n = recvfrom(sockfd, (char *)buffer, MAXLINE,0, (struct sockaddr *) &servaddr,&len);
-        if (n>0) {
-            pthread_t thread2;
-            // thread 2
 
-        }
+       sockLibres=sockActuels;
+
+       if(select(FD_SETSIZE,&sockLibres,NULL,NULL,NULL)< 0)
+       {
+           perror(" Select bug !");
+           exit(1);
+       }
+       for (size_t i = 0; i < FD_SETSIZE; i++)
+       {
+            if (FD_ISSET(i,&sockLibres))
+            {
+                if(i== sockfd)
+                {
+                    n = recvfrom(sockfd, (char *)buffer, MAXLINE,0, (struct sockaddr *) &servaddr,sizeof(servaddr));
+                    if( n < 0 )
+                    {
+                        perror(" Recv From bug !");
+
+                    }
+                    else
+                    {
+                        // Parser Maquet heree !!! 
+                        parserPaquet(datatable,voisins,buffer,(struct sockaddr *) &servaddr,sockfd);  
+                    }
+                    
+                }
+            }
+            
+       }
+       
 
 
     }
