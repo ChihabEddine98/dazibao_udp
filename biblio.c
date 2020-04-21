@@ -471,6 +471,10 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
     char *id;
     char *h;
     int len;
+    int p1;
+    int val;
+    int poly_port;
+    int poly;
     uint16_t seq;
     SA servaddr;
     unsigned char chainbuff[1024]={0} ;
@@ -488,18 +492,18 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             Voisin *v=hasardVoisin(voisins);
             servaddr.sin6_family = AF_INET6;
 
-            int val=1;
-            int poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
+            val=1;
+            poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
 
 
             val=0;
-            int poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
+            poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
 
 
             servaddr.sin6_port = htons(v->port);
             int p;
-            p=inet_pton(AF_INET6,v->ip,&servaddr.sin6_addr);
-            if(p==-1)
+            p1=inet_pton(AF_INET6,v->ip,&servaddr.sin6_addr);
+            if(p1==-1)
             {
                 perror(" ip err ");
             }
@@ -507,7 +511,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             memset(&neigh, 0, sizeof(neigh));
             data=malloc(strlen(v->ip)+2);
             memcpy(data,v->ip,strlen(v->ip));
-            short p=v->port;
+            p=v->port;
             short p2=htons(p);
             memcpy(&data[strlen(v->ip)],&p2,2);
             add_tlv(&neigh,NEIGH,strlen(data),data);
@@ -540,18 +544,17 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 //    }
             servaddr.sin6_family = AF_INET6;
 
-            int val=1;
-            int poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
+            val=1;
+            poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
 
 
             val=0;
-            int poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
+            poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
 
 
             servaddr.sin6_port = htons(port);
-            int p;
-            p=inet_pton(AF_INET6,parseIp(ip),&servaddr.sin6_addr);
-            if(p==-1)
+            p1=inet_pton(AF_INET6,parseIp(ip),&servaddr.sin6_addr);
+            if(p1==-1)
             {
                 perror(" ip err ");
             }
