@@ -555,7 +555,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             // servaddr.sin6_port = htons(port);
             // p1=inet_pton(AF_INET6,parseIp(ip),&servaddr.sin6_addr);
             servaddr.sin6_port = htons(SERVER_PORT);
-            p1=inet_pton(AF_INET6,parseIp(SERVER_IP),&servaddr.sin6_addr);
+            p1=inet_pton(AF_INET6,SERVER_IP,&servaddr.sin6_addr);
             if(p1==-1)
             {
                 perror(" ip err ");
@@ -680,7 +680,7 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd)
         // char *ip=inet_ntop(addr->sin6_addr);
         char ip[INET6_ADDRSTRLEN];
         inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
-        if(rechercheEmetteur(voisins,ip,port)==1 || voisins->used==15){
+        if(rechercheEmetteur(voisins,ip,port)==0 && voisins->used==15){
             printf(" \nerror ---- : le paquet est ignoré \n");
             return;
         }
@@ -689,7 +689,7 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd)
         memcpy(&len,&buf[2],2);
         len=ntohs(len);
         parserV1(buf+4,&list,len);
-        printf("\nuseddd=%d\n",list.used);
+        printf("\nused=%d\n",list.used);
       while(index < list.used)
       {
         parserTLV(datalist,voisins,&list,index,addr,sockfd);
