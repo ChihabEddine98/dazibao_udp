@@ -152,7 +152,7 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
         return -1;
 
     int16_t counter = 0;
-    printf("parser la\n");
+    printf("parser la and length =%d\n",length);
     while(counter < length)
     {
         if(list->used == MAX_TLV_OBJECTS)
@@ -487,11 +487,11 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd)
             return;
         }
         miseAjourVoisins(voisins,ip,port);
+
         memcpy(&len,&buf[2],2);
         len=ntohs(len);
         parserV1(buf+4,&list,len);
-        printf("\n usedd :%d \n",list.used);
-        
+        printf("\nused=%d",list.used);
       while(index < list.used)
       {
         parserTLV(datalist,voisins,&list,index,addr,sockfd);
@@ -605,6 +605,7 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
 void *miseAjour20s(void *args){
     arg *argss = (arg *)args;
     while (1){
+        printf("\n on est la ");
         parcoursVoisins(argss->arg1);
         moinsde5voisins(argss->arg1,argss->sockfd);
         sleep(20);
