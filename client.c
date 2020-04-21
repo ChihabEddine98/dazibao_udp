@@ -40,6 +40,7 @@ int main() {
         servaddr.sin_addr.s_addr = inet_addr(SERVER_IP);
 
         Data *datatable=malloc(sizeof(Data));
+
         insererData(datatable,"0e:7e:d5",1,"hello world");
         Voisins *voisins=malloc(sizeof(Voisins));
         voisins->used=0;
@@ -47,6 +48,7 @@ int main() {
         unsigned char *chainbuff=malloc(1024) ;
         uint16_t l = 0;
         char *paquet;
+
         int n=sendto(sockfd, (char *)paquet,l+4,MSG_CONFIRM, (const struct sockaddr *) &servaddr,sizeof(servaddr));
         if (n>0) printf("paquet  sent.\n");
         // thread20s
@@ -54,6 +56,7 @@ int main() {
         arg *arg1=malloc(sizeof(arg));
         arg1->sockfd=sockfd;
         arg1->arg1=voisins;
+
         if(pthread_create(&thread1, NULL,miseAjour20s,arg1) == -1) {
         perror("pthread_create");
         return EXIT_FAILURE;
@@ -70,7 +73,7 @@ int main() {
        // n = recvfrom(sockfd, (char *)buffer, MAXLINE,0, (struct sockaddr *) &servaddr,&len);
 
        sockLibres=sockActuels;
-
+        printf(" waiting ...");
        if(select(FD_SETSIZE,&sockLibres,NULL,NULL,NULL)< 0)
        {
            perror(" Select bug !");
@@ -82,7 +85,7 @@ int main() {
             {
                 if(i== sockfd)
                 {
-                    n = recvfrom(sockfd, (char *)buffer, MAXLINE,0, (struct sockaddr *) &servaddr,sizeof(servaddr));
+                     n = recvfrom(sockfd, (char *)buffer, MAXLINE,0, (struct sockaddr *) &servaddr,sizeof(servaddr));
                     if( n < 0 )
                     {
                         perror(" Recv From bug !");
@@ -91,7 +94,7 @@ int main() {
                     else
                     {
                         // Parser Maquet heree !!! 
-                        parserPaquet(datatable,voisins,buffer,(struct sockaddr *) &servaddr,sockfd);  
+                         parserPaquet(datatable,voisins,buffer,&servaddr,sockfd);  
                     }
                     
                 }

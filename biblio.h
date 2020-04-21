@@ -104,6 +104,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
 void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd);
 
 void parcoursVoisins(Voisins *voisins);
+void moinsde5voisins(Voisins *voisins,int sockfd);
 int rechercheEmetteur(Voisins *voisins,char *ip, uint16_t port);
 void addVoisin(Voisins *voisins,char *ip, uint16_t port);
 void miseAjourVoisins(Voisins *voisins,char *ip, uint16_t port);
