@@ -152,7 +152,7 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
         return -1;
 
     int16_t counter = 0;
-    printf("parser la and length =%d\n",length);
+    printf("\nparser la and length =%d\n",length);
     while(counter < length)
     {
         if(list->used == MAX_TLV_OBJECTS)
@@ -355,7 +355,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             printf("\n paquet type 3 sent  \n");
             break;
         case NEIGH:
-            printf("type 3\n");
+            printf("type 3 Recieved :\n");
             tlv_chain netHash;
             memset(&netHash, 0, sizeof(netHash));
             //Ce TLV contient l’adresse d’un voisin vivant de l’émetteur
@@ -373,7 +373,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             add_tlv(&netHash,NET_HASH,strlen(net),net);
             tlv_chain_toBuff(&netHash,chainbuff, &l);
             paquet=chain2Paquet(chainbuff,l);
-            sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)&servaddr,sizeof(servaddr));
+            //sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)&servaddr,sizeof(servaddr));
             printf("\n paquet type 4 sent  \n");
             break;
         case NET_HASH:
@@ -491,7 +491,7 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd)
         memcpy(&len,&buf[2],2);
         len=ntohs(len);
         parserV1(buf+4,&list,len);
-        printf("\nused=%d",list.used);
+        printf("\nused=%d\n",list.used);
       while(index < list.used)
       {
         parserTLV(datalist,voisins,&list,index,addr,sockfd);
