@@ -320,6 +320,154 @@ void NodeState(Data *datalist,char *node,int len,SA *addr){
 
 
 }
+int hex2dec(char hexVal[]) 
+{    
+    int len = strlen(hexVal); 
+      
+    // Initializing base value to 1, i.e 16^0 
+    int base = 1; 
+      
+    int dec_val = 0; 
+      
+    // Extracting characters as digits from last character 
+    for (int i=len-1; i>=0; i--) 
+    {    
+        // if character lies in '0'-'9', converting  
+        // it to integral 0-9 by subtracting 48 from 
+        // ASCII value. 
+        if (hexVal[i]>='0' && hexVal[i]<='9') 
+        { 
+            dec_val += (hexVal[i] - 48)*base; 
+                  
+            // incrementing base by power 
+            base = base * 16; 
+        } 
+  
+        // if character lies in 'A'-'F' , converting  
+        // it to integral 10 - 15 by subtracting 55  
+        // from ASCII value 
+        else if (hexVal[i]>='a' && hexVal[i]<='f') 
+        { 
+            dec_val += (hexVal[i] - 55)*base; 
+          
+            // incrementing base by power 
+            base = base*16; 
+        } 
+    } 
+      
+    return dec_val; 
+} 
+
+int nombreChiffres ( int nombre )
+{
+	int i = 1;
+	if (nombre < 0)
+	{
+		nombre = -nombre;
+	}
+	while (nombre >= 10)
+	{
+		nombre /= 10;
+		i++;
+	}
+/* 
+ * Avec une boucle for
+ * 	for (i=1; nombre >= 10; nombre /= 10, i++) ;
+ */
+	return i;
+}
+unsigned char* parseIp(unsigned char* ipHex)
+{
+    for (int i = 0; i <16 ; i++) {
+        printf(" %02x",ipHex[i]);
+        }
+
+    printf("\n");
+    unsigned char* ipRes=malloc(45*sizeof(char));
+    unsigned char* initMapped="00000000000000000000ffff";
+    unsigned char* initOurIp=malloc(12);
+    char cmp[24],cmp2[32];
+    int j=0;
+
+    for (int i = 0; i <16 ; i++) {
+
+        if (i < 12 && j < 24  )
+        {
+          initOurIp[i]=ipHex[i];
+          sprintf(&cmp[j],"%02x",initOurIp[i]);
+          j+=2;
+
+        }
+
+
+        
+           
+    }
+        
+    
+        if(strcmp(cmp,initMapped)==0)
+        {
+            j=0;
+            for (size_t i = 12; i < 16; i++)
+            {
+               int k=ipHex[i];
+               if(i==15)
+               {
+                  sprintf(&ipRes[j],"%d",k);
+                  j+=nombreChiffres(k);
+
+               }
+               else
+               {
+                  sprintf(&ipRes[j],"%d.",k);
+                  j+=nombreChiffres(k)+1;
+               }
+              return ipRes;
+            }
+
+            for (size_t i = 12,j=0; i < 16,j<8 ; i++,j+=2)
+            {
+               sprintf(&ipRes[i],"%d.",ipHex[i]);
+            
+            }
+            
+        }
+        else{
+            j=0;
+            unsigned char* h=malloc(4);
+            for (size_t i = 0; i < 16; i+=2)
+            {
+               printf("%02x%02x:",ipHex[i],ipHex[i+1]);
+               if(i==14)
+               {
+                  sprintf(&ipRes[j],"%02x%02x",ipHex[i],ipHex[i+1]);
+                  j+=4;
+
+               }
+               else
+               {
+                  sprintf(&ipRes[j],"%02x%02x:",ipHex[i],ipHex[i+1]);
+                  j+=5;
+               }
+            }
+
+              return ipRes;
+        }
+
+        
+        
+        // if ipv6 or ipv4 mapped !
+
+    printf("\n our ip :\n ");
+
+        for (int i = 0; i <12 ; i++) {
+        printf(" %02x",initOurIp[i]);
+        }
+
+    return ipRes;
+}
+
+
 void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
     int length;
     char *body;
@@ -377,9 +525,10 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                   memcpy(&port,&data[length-2],2);
                   short port2=htons(port);
                   printf("\n port =%d and ip=",port2);
-            for (int i = 0; i <16 ; i++) {
-                printf(" %02x",ip[i]);
-            }
+                //   for (int i = 0; i <16 ; i++) {
+                //      printf(" %02x",ip[i]);
+                //    }
+                   parseIp(ip);
                 servaddr.sin_family = AF_INET;
                  servaddr.sin_port = htons(port2);
                  servaddr.sin_addr.s_addr = inet_addr(ip);
