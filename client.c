@@ -34,23 +34,27 @@ int main() {
         servaddr.sin_family = AF_INET;
         servaddr.sin_port = htons(SERVER_PORT);
         servaddr.sin_addr.s_addr = inet_addr(SERVER_IP);
+
         Data *datatable=malloc(sizeof(Data));
         insererData(datatable,"0e:7e:d5",1,"hello world");
         Voisins *voisins=malloc(sizeof(Voisins));
         voisins->used=0;
 
-    unsigned char *chainbuff=malloc(1024) ;
-    uint16_t l = 0;
-char *paquet;
-    int n=sendto(sockfd, (char *)paquet,l+4,MSG_CONFIRM, (const struct sockaddr *) &servaddr,sizeof(servaddr));
-    if (n>0) printf("paquet  sent.\n");
-    // thread20s
-    pthread_t thread1;
-    /*if(pthread_create(&thread1, NULL,miseAjour20s,NULL) == -1) {
+        unsigned char *chainbuff=malloc(1024) ;
+        uint16_t l = 0;
+        char *paquet;
+        int n=sendto(sockfd, (char *)paquet,l+4,MSG_CONFIRM, (const struct sockaddr *) &servaddr,sizeof(servaddr));
+        if (n>0) printf("paquet  sent.\n");
+        // thread20s
+        pthread_t thread1;
+        arg *arg1=malloc(sizeof(arg));
+        arg1->sockfd=sockfd;
+        arg1->arg1=voisins;
+        if(pthread_create(&thread1, NULL,miseAjour20s,arg1) == -1) {
         perror("pthread_create");
         return EXIT_FAILURE;
-    }
-*/
+       }
+
 
     while (1){
        // n = recvfrom(sockfd, (char *)buffer, MAXLINE,0, (struct sockaddr *) &servaddr,&len);

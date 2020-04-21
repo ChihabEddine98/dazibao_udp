@@ -599,12 +599,14 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
     }
 }
 
-void miseAjour20s(Voisins *voisins,int sockfd){
+void *miseAjour20s(void *args){
+    arg *argss = (arg *)args;
     while (1){
-        parcoursVoisins(voisins);
-        moinsde5voisins(voisins,sockfd);
+        parcoursVoisins(argss->arg1);
+        moinsde5voisins(argss->arg1,argss->sockfd);
         sleep(20);
     }
+   return NULL;
 }
 
 void parcoursVoisins(Voisins *voisins){

@@ -83,7 +83,10 @@ typedef  struct{
     Triplet *tete;
     uint8_t used;
 }Data;
-
+typedef struct {
+    Voisins *arg1;
+    int sockfd;
+}arg;
 
 
 ///---------------------------------------------------------------------------------
@@ -110,7 +113,7 @@ void insererData(Data *datalist,char *id,uint16_t seq,char *donnee);
 char *NetworkHash(Data *datalist);
 char *concatTriplet(Triplet *d);
 char *Hash(char *data);
-void miseAjour20s(Voisins *voisins,int sockfd);
+void *miseAjour20s(void *args);
 void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr);
 void nodestate(char *buffer,char *data,char *id,short seq,char *hash,int *size);
 void supprimerData(Data *datalist,char *id);
