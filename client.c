@@ -27,7 +27,7 @@ int main() {
         SA	 servaddr;
 
         // Creating socket file descriptor
-        if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        if ( (sockfd = socket(AF_INET6, SOCK_DGRAM, 0)) < 0 ) {
             perror("socket creation failed");
             exit(EXIT_FAILURE);
         }

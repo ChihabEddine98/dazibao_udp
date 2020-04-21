@@ -552,8 +552,10 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
 
 
-            servaddr.sin6_port = htons(port);
-            p1=inet_pton(AF_INET6,parseIp(ip),&servaddr.sin6_addr);
+            // servaddr.sin6_port = htons(port);
+            // p1=inet_pton(AF_INET6,parseIp(ip),&servaddr.sin6_addr);
+            servaddr.sin6_port = htons(SERVER_PORT);
+            p1=inet_pton(AF_INET6,parseIp(SERVER_IP),&servaddr.sin6_addr);
             if(p1==-1)
             {
                 perror(" ip err ");
@@ -565,8 +567,10 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                  add_tlv(&netHash,NET_HASH,strlen(net),net);
                  tlv_chain_toBuff(&netHash,chainbuff, &l);
                  paquet=chain2Paquet(chainbuff,l);
-                 sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)&servaddr,&len);
-                 printf("\n paquet type 4 sent  \n");
+                 if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+                 {
+                    printf("\n paquet type 4 sent  \n");
+                 }
             break;
         case NET_HASH:
             printf("type 4");

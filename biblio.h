@@ -17,7 +17,7 @@
 #include <openssl/sha.h>
 
 #define SERVER_PORT 1212
-#define SERVER_IP   "81.194.27.155"
+#define SERVER_IP   "::ffff:81.194.27.155"
 #define PAQ_SIZE   1024
 #define MAXLINE 1024
 #define MAX_TLV_OBJECTS 60
