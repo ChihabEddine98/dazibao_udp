@@ -669,8 +669,10 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd)
 
     if(buf[0]==95 && buf[1]==1)
     {
-        uint16_t port=ntohs(addr->sin_port);
-        char *ip=inet_ntoa(addr->sin_addr);
+        uint16_t port=ntohs(addr->sin6_port);
+        // char *ip=inet_ntop(addr->sin6_addr);
+        char ip[INET6_ADDRSTRLEN];
+        inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
         if(rechercheEmetteur(voisins,ip,port)==1 || voisins->used==15){
             printf(" \nerror ---- : le paquet est ignoré \n");
             return;
