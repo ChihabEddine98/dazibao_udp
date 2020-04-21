@@ -24,7 +24,7 @@ int main() {
         int sockfd;
         char buffer[MAXLINE];
         char *hello = "Hello from client";
-        struct sockaddr_in	 servaddr;
+        SA	 servaddr;
 
         // Creating socket file descriptor
         if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -34,10 +34,23 @@ int main() {
 
         memset(&servaddr, 0, sizeof(servaddr));
 
-        // Filling server information
-        servaddr.sin_family = AF_INET;
-        servaddr.sin_port = htons(SERVER_PORT);
-        servaddr.sin_addr.s_addr = inet_addr(SERVER_IP);
+            servaddr.sin6_family = AF_INET6;
+
+            int val=1;
+            int poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
+
+            val=0;
+            int poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
+
+
+            servaddr.sin6_port = htons(SERVER_PORT);
+            int p;
+            p=inet_pton(AF_INET6,SERVER_IP,&servaddr.sin6_addr);
+            if(p==-1)
+            {
+                perror(" ip err ");
+            }
+
 
         Data *datatable=malloc(sizeof(Data));
         insererData(datatable,"0e:7e:d5",1,"hello world");

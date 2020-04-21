@@ -486,9 +486,23 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             printf("type 2");
             //Ce TLV demande au récepteur d’envoyer un TLVNeighbour
             Voisin *v=hasardVoisin(voisins);
-            servaddr.sin_family = AF_INET;
-            servaddr.sin_port = htons(v->port);
-            servaddr.sin_addr.s_addr = inet_addr(v->ip);
+            servaddr.sin6_family = AF_INET6;
+
+            int val=1;
+            int poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
+
+
+            val=0;
+            int poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
+
+
+            servaddr.sin6_port = htons(v->port);
+            int p;
+            p=inet_pton(AF_INET6,v->ip,&servaddr.sin6_addr);
+            if(p==-1)
+            {
+                perror(" ip err ");
+            }
             tlv_chain neigh;
             memset(&neigh, 0, sizeof(neigh));
             data=malloc(strlen(v->ip)+2);
@@ -524,10 +538,24 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 //   for (int i = 0; i <16 ; i++) {
                 //      printf(" %02x",ip[i]);
                 //    }
-                
-                servaddr.sin_family = AF_INET;
-                 servaddr.sin_port = htons(port2);
-                 servaddr.sin_addr.s_addr = inet_addr(parseIp(ip));
+            servaddr.sin6_family = AF_INET6;
+
+            int val=1;
+            int poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
+
+
+            val=0;
+            int poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
+
+
+            servaddr.sin6_port = htons(port);
+            int p;
+            p=inet_pton(AF_INET6,parseIp(ip),&servaddr.sin6_addr);
+            if(p==-1)
+            {
+                perror(" ip err ");
+            }
+
 
             char *net=NetworkHash(datalist);
 
