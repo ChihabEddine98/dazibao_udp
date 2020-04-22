@@ -684,6 +684,7 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd)
             printf(" \nerror ---- : le paquet est ignoré \n");
             return;
         }
+        printf("\n\nin the beg  ip =%s  and port =%d ",ip,port);
         miseAjourVoisins(voisins,ip,port);
 
         memcpy(&len,&buf[2],2);
@@ -710,7 +711,7 @@ int rechercheEmetteur(Voisins *voisins,char *ip, uint16_t port){
     int count=0;
     while(count<Max_voisin){
         if(voisins->TableDevoisins[count]!=NULL){
-            if(voisins->TableDevoisins[count]->port==port && strcmp(parseIp(ip),voisins->TableDevoisins[count]->ip)==0){
+            if(voisins->TableDevoisins[count]->port==port && strcmp(ip,voisins->TableDevoisins[count]->ip)==0){
                 return 1;
             }
         }
@@ -733,7 +734,7 @@ void addVoisin(Voisins *voisins,char *ip, uint16_t port){
             voisins->TableDevoisins[count]=malloc(sizeof(Voisin));
             voisins->TableDevoisins[count]->port=port;
             voisins->TableDevoisins[count]->ip=malloc(45);
-            strcpy(voisins->TableDevoisins[count]->ip,parseIp(ip));
+            strcpy(voisins->TableDevoisins[count]->ip,ip);
             voisins->TableDevoisins[count]->date=now;
             voisins->TableDevoisins[count]->permanent=0;
             voisins->used+=1;
@@ -754,6 +755,7 @@ void modifierVoisin(Voisins *voisins,char *ip, uint16_t port){
     while(count<Max_voisin){
         if(voisins->TableDevoisins[count]!=NULL){
             if(voisins->TableDevoisins[count]->port==port && strcmp(ip,voisins->TableDevoisins[count]->ip)==0){
+                printf("\nmodifier la data\n");
                 voisins->TableDevoisins[count]->date=now;
             }
         }
@@ -762,8 +764,10 @@ void modifierVoisin(Voisins *voisins,char *ip, uint16_t port){
 }
 void miseAjourVoisins(Voisins *voisins,char *ip, uint16_t port){
     if(rechercheEmetteur(voisins,ip,port)==1){
+        printf("\n modifier");
         modifierVoisin(voisins,ip,port);
     }else{
+        printf("\n add");
         addVoisin(voisins,ip,port);
     }
 }
