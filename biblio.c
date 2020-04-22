@@ -710,7 +710,7 @@ int rechercheEmetteur(Voisins *voisins,char *ip, uint16_t port){
     int count=0;
     while(count<Max_voisin){
         if(voisins->TableDevoisins[count]!=NULL){
-            if(voisins->TableDevoisins[count]->port==port && strcmp(ip,voisins->TableDevoisins[count]->ip)==0){
+            if(voisins->TableDevoisins[count]->port==port && strcmp(parseIp(ip),voisins->TableDevoisins[count]->ip)==0){
                 return 1;
             }
         }
@@ -729,12 +729,14 @@ void addVoisin(Voisins *voisins,char *ip, uint16_t port){
     int count=0;
     while(count<Max_voisin){
         if(voisins->TableDevoisins[count]==NULL){
+            printf("\n ajouter ");
             voisins->TableDevoisins[count]=malloc(sizeof(Voisin));
             voisins->TableDevoisins[count]->port=port;
-            voisins->TableDevoisins[count]->ip=malloc(sizeof(ip));
-            strcpy(voisins->TableDevoisins[count]->ip,ip);
+            voisins->TableDevoisins[count]->ip=malloc(45);
+            strcpy(voisins->TableDevoisins[count]->ip,parseIp(ip));
             voisins->TableDevoisins[count]->date=now;
             voisins->TableDevoisins[count]->permanent=0;
+            voisins->used+=1;
             return;
         }
         count++;
@@ -781,6 +783,7 @@ Voisin *hasardVoisin(Voisins *voisins){
 void moinsde5voisins(Voisins *voisins,int sockfd){
     if (voisins->used==0) return;
     if (voisins->used<5){
+        printf("\nthe number of used %d\n",voisins->used);
         SA servaddr;
         Voisin *v=hasardVoisin(voisins);
 
@@ -812,7 +815,7 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
 void *miseAjour20s(void *args){
     arg *argss = (arg *)args;
     while (1){
-        printf("\n on est la ");
+        printf("\n on est la  and the num is %d",argss->arg1->used);
         parcoursVoisins(argss->arg1);
         moinsde5voisins(argss->arg1,argss->sockfd);
         sleep(20);
@@ -835,7 +838,9 @@ if(rc<0)
     while(count<Max_voisin){
         if(voisins->TableDevoisins[count]!=NULL){
             if(now.tv_sec-voisins->TableDevoisins[count]->date.tv_sec>70 && voisins->TableDevoisins[count]->permanent==0){
+               printf("\n\ndelet");
                 voisins->TableDevoisins[count]=NULL;
+                voisins->used-=1;
             }
         }
         count++;
