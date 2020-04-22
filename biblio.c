@@ -231,7 +231,12 @@ while (tmp!=NULL){
 }
     tlv_chain_toBuff(&chaine, chainbuff, &l);
     char *paquet=chain2Paquet(chainbuff,l);
-    sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,&len);
+    printf("\n the L is %d \n",l);
+
+    if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)addr,sizeof(addr))>0)
+        printf("\n serie TLV Node Hash 6 sent  \n");
+    else
+        printf("\n error , serie TLV Node Hash 6 non sent  \n");
 }
 void nodestate(char *buffer,char *data,char *id,short seq,char *hash,int *size){
 int cpt;
@@ -517,8 +522,9 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             add_tlv(&neigh,NEIGH,strlen(data),data);
             tlv_chain_toBuff(&neigh, chainbuff, &l);
             paquet=chain2Paquet(chainbuff,l);
-            sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)&servaddr,&len);
-            printf("\n paquet type 3 sent  \n");
+            if (sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+             printf("\n paquet type 3 sent  \n");
+            else printf("\n error , paquet type 3 non sent  \n");
             break;
         case NEIGH:
             printf("type 3 Recieved :\n");
@@ -582,8 +588,11 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 add_tlv(&netstate,NET_STATE_R,0,NULL);
                 tlv_chain_toBuff(&netstate, chainbuff, &l);
                 paquet=chain2Paquet(chainbuff,l);
-                sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,&len);
-                printf("\n paquet type 5 sent  \n");
+                if(sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,sizeof(addr))>0)
+                  printf("\n paquet type 5 sent  \n");
+                else
+                    printf("\n error , paquet type 5 non sent  \n");
+
             }
 
             break;
@@ -610,8 +619,9 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 add_tlv(&netstatereq,NODE_STATE_R,8,id);
                 tlv_chain_toBuff(&netstatereq, chainbuff, &l);
                 paquet=chain2Paquet(chainbuff,l);
-                sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,&len);
-                printf("\n paquet type 7 sent  \n");
+                if(sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,sizeof(addr))>0)
+                 printf("\n paquet type 7 sent  \n");
+                else  printf("\n error , paquet type 7 non sent  \n");
             } else {
                 /// rien a faire
             }
@@ -633,8 +643,9 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             add_tlv(&node_state,NODE_STATE,strlen(toSend),toSend);
             tlv_chain_toBuff(&node_state, chainbuff, &l);
             paquet=chain2Paquet(chainbuff,l);
-            sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,&len);
-            printf("\n paquet type 8 sent  \n");
+            if(sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,sizeof(addr))>0)
+              printf("\n paquet type 8 sent  \n");
+            else printf("\n error , paquet type 8 non sent  \n");
 
             break;
         case NODE_STATE:

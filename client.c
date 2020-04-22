@@ -56,6 +56,9 @@ int main() {
         insererData(datatable,"0e:7e:d5",1,"hello world");
         Voisins *voisins=malloc(sizeof(Voisins));
         voisins->used=0;
+    for (int j = 0; j <15 ; j++) {
+        voisins->TableDevoisins[j]=NULL;
+    }
 
         unsigned char *chainbuff=malloc(1024) ;
         uint16_t l = 0;
