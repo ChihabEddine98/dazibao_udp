@@ -677,16 +677,21 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             memset(&node_state, 0, sizeof(node_state));
             Triplet *d1=Getdataintable(datalist,idnode);
             if (d1!=NULL) {
-                char *toSend = malloc(26 + strlen(d1->data));
+                int tailletosend=26 + strlen(d1->data);
+                char *toSend = malloc(tailletosend*sizeof(char));
                 memcpy(toSend, idnode, 8);
                 uint16_t seqno = htons(d1->numDeSeq);
-                memcpy(toSend + 8, &seqno, 2);
+                memcpy(&toSend[8], &seqno, 2);
                 char *nHash = Hash(concatTriplet(d1));
-                memcpy(toSend + 10, nHash, 16);
-                memcpy(toSend + 26, d1->data, strlen(d1->data));
-                add_tlv(&node_state, NODE_STATE, strlen(toSend), toSend);
+                printf("\nHAsh :%s",nHash);
+
+                memcpy(&toSend[10], nHash, 16);
+                memcpy(&toSend[26], d1->data, strlen(d1->data));
+                printf("\nla taille de tosend est :%d",strlen(toSend));
+                add_tlv(&node_state, NODE_STATE, tailletosend, toSend);
                 tlv_chain_toBuff(&node_state, chainbuff, &l);
                 paquet = chain2Paquet(chainbuff, l);
+                printf("\nla taille l est :%d",l);
                 if (sendto(sockfd, (const char *) paquet, l + 4, 0, (const SA *) &servaddr, sizeof(servaddr)) > 0)
                     printf("\n paquet type 8 sent  \n");
                 else printf("\n error , paquet type 8 non sent  \n");
