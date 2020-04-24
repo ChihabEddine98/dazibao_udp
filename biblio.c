@@ -616,6 +616,11 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
         case NET_HASH:
             printf("type 4");
             //Ce TLV indique l’idée que se fait l’émetteur de l’état actuel du réseau
+            port=ntohs(addr->sin6_port);
+            // char *ip=inet_ntop(addr->sin6_addr);
+            ip[INET6_ADDRSTRLEN];
+            inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
+            servaddr.sin6_port = htons(port);
             char *myHash=NetworkHash(datalist);
             if(strcmp(myHash,list->object[index].data)!=0){
                 tlv_chain netstate;
@@ -623,7 +628,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 add_tlv(&netstate,NET_STATE_R,0,NULL);
                 tlv_chain_toBuff(&netstate, chainbuff, &l);
                 paquet=chain2Paquet(chainbuff,l);
-                if(sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,sizeof(addr))>0)
+                if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
                   printf("\n paquet type 5 sent  \n");
                 else
                     printf("\n error , paquet type 5 non sent  \n");
@@ -638,6 +643,12 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             break;
         case NODE_HASH:
             printf("type 6");
+
+            port=ntohs(addr->sin6_port);
+            // char *ip=inet_ntop(addr->sin6_addr);
+            ip[INET6_ADDRSTRLEN];
+            inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
+            servaddr.sin6_port = htons(port);
            //Ce TLV est envoyé en réponse à un TLVNetwork State Request.
             id=malloc(sizeof(char)*8);
             memcpy(id,list->object[index].data,8);
@@ -655,7 +666,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 add_tlv(&netstatereq,NODE_STATE_R,8,id);
                 tlv_chain_toBuff(&netstatereq, chainbuff, &l);
                 paquet=chain2Paquet(chainbuff,l);
-                if(sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,sizeof(addr))>0)
+                if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
                  printf("\n paquet type 7 sent  \n");
                 else  printf("\n error , paquet type 7 non sent  \n");
             } else {
@@ -680,19 +691,18 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 int tailletosend=26 + strlen(d1->data);
                 char *toSend = malloc(tailletosend*sizeof(char));
                 memcpy(toSend, idnode, 8);
-                uint16_t seqno = htons(d1->numDeSeq);
+                uint16_t seqno =htons(d1->numDeSeq);
                 memcpy(&toSend[8], &seqno, 2);
                 char *nHash = Hash(concatTriplet(d1));
                 printf("\nHAsh :%s",nHash);
-
                 memcpy(&toSend[10], nHash, 16);
                 memcpy(&toSend[26], d1->data, strlen(d1->data));
                 printf("\nla taille de tosend est :%d",strlen(toSend));
                 add_tlv(&node_state, NODE_STATE, tailletosend, toSend);
                 tlv_chain_toBuff(&node_state, chainbuff, &l);
-                paquet = chain2Paquet(chainbuff, l);
-                printf("\nla taille l est :%d",l);
-                if (sendto(sockfd, (const char *) paquet, l + 4, 0, (const SA *) &servaddr, sizeof(servaddr)) > 0)
+                paquet = chain2Paquet(chainbuff,l);
+                printf("\nla taille l est:%d",l);
+                if (sendto(sockfd, (const char *) paquet,l + 4, 0, (const SA *) &servaddr, sizeof(servaddr)) > 0)
                     printf("\n paquet type 8 sent  \n");
                 else printf("\n error , paquet type 8 non sent  \n");
             } else printf("\n data non trouve  \n");
@@ -930,6 +940,7 @@ char *NetworkHash(Data *datalist){
 void insererData(Data *datalist,char *id,uint16_t seq,char *donnee){
     Triplet *t=malloc(sizeof(Triplet));
     t->numDeSeq=seq;
+    //memcpy(t->numDeSeq,seq,2);
     memcpy(t->id,id,8);
     t->data=malloc(strlen(donnee));
     memcpy(t->data,donnee,strlen(donnee));
@@ -943,7 +954,7 @@ void insererData(Data *datalist,char *id,uint16_t seq,char *donnee){
     }
     int cnt=1;
     while (tmp!=NULL && cnt==1){
-        if(strcmp(tmp->id,id)>0){
+        if(memcmp(tmp->id,id,8)>0){
             cnt=0;
         }else {
             pres = tmp;
