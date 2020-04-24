@@ -235,11 +235,13 @@ int cpt;
 cpt=32+strlen(data);
 *size=cpt;
 }
-Triplet *Getdataintable(Data *datalist,char *id){
+
+Triplet *Getdataintable(Data *datalist,char id[8]){
     Triplet *tmp=datalist->tete;
     Triplet *res=NULL;
     while (tmp!=NULL){
-        if(strcmp(tmp->id,id)==0) return tmp;
+        printf("\n [%s] [%s] cmp %d",id ,tmp->id,memcmp(id,tmp->id,8));
+        if(memcmp(tmp->id,id,8)==0) return tmp;
         tmp=tmp->suivant;
     }
     return res;
@@ -449,11 +451,11 @@ void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr){
     servaddr.sin6_family = AF_INET6;
 
     int val=1;
-    int poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
+   // int poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
 
 
     val=0;
-    int poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
+    //int poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
     uint16_t port=ntohs(addr->sin6_port);
     char ip[INET6_ADDRSTRLEN];
     inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
@@ -508,6 +510,13 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
     int poly;
     uint16_t seq;
     SA servaddr;
+    servaddr.sin6_family = AF_INET6;
+    val=1;
+  //  poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
+
+    val=0;
+    //poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
+
     unsigned char chainbuff[1024]={0} ;
     uint16_t l = 0;
     switch (list->object[index].type){
@@ -521,14 +530,14 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             printf("type 2");
             //Ce TLV demande au récepteur d’envoyer un TLVNeighbour
             Voisin *v=hasardVoisin(voisins);
-            servaddr.sin6_family = AF_INET6;
+          //  servaddr.sin6_family = AF_INET6;
 
-            val=1;
-            poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
+           // val=1;
+            //poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
 
 
-            val=0;
-            poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
+            //val=0;
+            //poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
 
 
             servaddr.sin6_port = htons(v->port);
@@ -576,12 +585,12 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 //    }
             servaddr.sin6_family = AF_INET6;
 
-            val=1;
-            poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
+           // val=1;
+            //poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
 
 
-            val=0;
-            poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
+            //val=0;
+            //poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
 
 
             // servaddr.sin6_port = htons(port);
@@ -656,23 +665,33 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
         case NODE_STATE_R:
             printf("type 7");
             //Ce TLV demande au récepteur d’envoyer un TLVNode Statedécrivant l’état du nœud indiquépar le champNode Id
-            char idnode=list->object[index].data;
+            char *idnode=list->object[index].data;
+
+            port=ntohs(addr->sin6_port);
+            // char *ip=inet_ntop(addr->sin6_addr);
+            ip[INET6_ADDRSTRLEN];
+            inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
+            servaddr.sin6_port = htons(port);
+
             tlv_chain node_state;
             memset(&node_state, 0, sizeof(node_state));
-            Triplet *d1=Getdataintable(datalist,id);
-            char* toSend=malloc(26+strlen(data));
-            memcpy(toSend,idnode,8);
-            uint16_t seqno=htons(d1->numDeSeq);
-            memcpy(toSend+8,&seqno,2);
-            char *nHash=Hash(concatTriplet(d1));
-            memcpy(toSend+10,nHash,16);
-            memcpy(toSend+26,d1->data,strlen(d1->data));
-            add_tlv(&node_state,NODE_STATE,strlen(toSend),toSend);
-            tlv_chain_toBuff(&node_state, chainbuff, &l);
-            paquet=chain2Paquet(chainbuff,l);
-            if(sendto(sockfd,(const char *)paquet,l+4,0,(const SA *)addr,sizeof(addr))>0)
-              printf("\n paquet type 8 sent  \n");
-            else printf("\n error , paquet type 8 non sent  \n");
+            Triplet *d1=Getdataintable(datalist,idnode);
+            if (d1!=NULL) {
+                char *toSend = malloc(26 + strlen(d1->data));
+                memcpy(toSend, idnode, 8);
+                uint16_t seqno = htons(d1->numDeSeq);
+                memcpy(toSend + 8, &seqno, 2);
+                char *nHash = Hash(concatTriplet(d1));
+                memcpy(toSend + 10, nHash, 16);
+                memcpy(toSend + 26, d1->data, strlen(d1->data));
+                add_tlv(&node_state, NODE_STATE, strlen(toSend), toSend);
+                tlv_chain_toBuff(&node_state, chainbuff, &l);
+                paquet = chain2Paquet(chainbuff, l);
+                if (sendto(sockfd, (const char *) paquet, l + 4, 0, (const SA *) &servaddr, sizeof(servaddr)) > 0)
+                    printf("\n paquet type 8 sent  \n");
+                else printf("\n error , paquet type 8 non sent  \n");
+            } else printf("\n data non trouve  \n");
+
 
             break;
         case NODE_STATE:
