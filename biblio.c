@@ -214,27 +214,6 @@ char *concatTriplet(Triplet *d){
     return data;
 }
 
-void nodestate(char *buffer,char *data,char *id,short seq,char *hash,int *size){
-int cpt;
-    short i=strlen(data)+28;
-    short i2=htons(i);
-    buffer[0]=95;
-    buffer[1]=1;
-    memcpy(&buffer[2],&i2,2);
-    buffer[4]=0b0001000;
-    short j=strlen(data)+26;
-    short j2=htons(j);
-    char length[2];
-    memcpy(length,&j2,2);
-    memcpy(&buffer[5],&length[1],1);
-    memcpy(&buffer[6],id,8);
-    short sequence=htons(seq);
-    memcpy(&buffer[14],&sequence,2);
-    memcpy(&buffer[16],hash,16);
-    memcpy(&buffer[32],data,strlen(data));
-cpt=32+strlen(data);
-*size=cpt;
-}
 
 Triplet *Getdataintable(Data *datalist,char id[8]){
     Triplet *tmp=datalist->tete;
@@ -531,16 +510,6 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             printf("type 2");
             //Ce TLV demande au récepteur d’envoyer un TLVNeighbour
             Voisin *v=hasardVoisin(voisins);
-          //  servaddr.sin6_family = AF_INET6;
-
-           // val=1;
-            //poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
-
-
-            //val=0;
-            //poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
-
-
             servaddr.sin6_port = htons(v->port);
             int p;
             p1=inet_pton(AF_INET6,v->ip,&servaddr.sin6_addr);
@@ -571,29 +540,18 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             data=list->object[index].data;
              int8_t length=list->object[index].size;
             printf("\n len=%d",l);
-
-                  uint16_t port=0;
-                  unsigned char *ip=malloc(16*sizeof(char));
-                  memcpy(ip,data,length-2);
-
-                  memcpy(&port,&data[length-2],2);
-                  short port2=ntohs(port);
-                  printf("\n port =%d ",port);
-                  printf("\n ip formatted : %s\n",parseIp(ip));
+            uint16_t port=0;
+            unsigned char *ip=malloc(16*sizeof(char));
+            memcpy(ip,data,length-2);
+            memcpy(&port,&data[length-2],2);
+            short port2=ntohs(port);
+            printf("\n port =%d ",port);
+            printf("\n ip formatted : %s\n",parseIp(ip));
 
                 //   for (int i = 0; i <16 ; i++) {
                 //      printf(" %02x",ip[i]);
                 //    }
             servaddr.sin6_family = AF_INET6;
-
-           // val=1;
-            //poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
-
-
-            //val=0;
-            //poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
-
-
             // servaddr.sin6_port = htons(port);
             // p1=inet_pton(AF_INET6,parseIp(ip),&servaddr.sin6_addr);
             servaddr.sin6_port = htons(SERVER_PORT);
@@ -602,17 +560,14 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             {
                 perror(" ip err ");
             }
-
-
             char *net=NetworkHash(datalist);
-
-                 add_tlv(&netHash,NET_HASH,strlen(net),net);
-                 tlv_chain_toBuff(&netHash,chainbuff, &l);
-                 paquet=chain2Paquet(chainbuff,l);
-                 if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
-                 {
+            add_tlv(&netHash,NET_HASH,strlen(net),net);
+            tlv_chain_toBuff(&netHash,chainbuff, &l);
+            paquet=chain2Paquet(chainbuff,l);
+            if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+            {
                     printf("\n paquet type 4 sent  \n");
-                 }
+            }
             break;
         case NET_HASH:
             printf("type 4");
@@ -684,7 +639,6 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             ip[INET6_ADDRSTRLEN];
             inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
             servaddr.sin6_port = htons(port);
-
             tlv_chain node_state;
             memset(&node_state, 0, sizeof(node_state));
             Triplet *d1=Getdataintable(datalist,idnode);
