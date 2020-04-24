@@ -159,6 +159,8 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
             return -1;
         // deserialize type
         list->object[list->used].type = src[counter];
+        printf("\n type V1=%d",list->object[list->used].type);
+
         counter++;
 
         if(list->object[list->used].type!=0) {
@@ -211,33 +213,7 @@ char *concatTriplet(Triplet *d){
     memcpy(&data[10],d->data,strlen(d->data));
     return data;
 }
-void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr){
-Triplet *tmp=datalist->tete;
-    tlv_chain chaine;
-    memset(&chaine, 0, sizeof(chaine));
-    char *h;
-    char *data=malloc(sizeof(char)*26);
-    unsigned char chainbuff[1024]={0} ;
-    uint16_t l = 0;
-    int len;
-while (tmp!=NULL){
-    h=Hash(concatTriplet(tmp));
-    uint16_t seq=htons(tmp->numDeSeq);
-    memcpy(data,tmp->id,8);
-    memcpy(&data[8],&seq,2);
-    memcpy(&data[10],h,16);
-    add_tlv(&chaine,NODE_HASH,26,data);
-    tmp=tmp->suivant;
-}
-    tlv_chain_toBuff(&chaine, chainbuff, &l);
-    char *paquet=chain2Paquet(chainbuff,l);
-    printf("\n the L is %d \n",l);
 
-    if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)addr,sizeof(addr))>0)
-        printf("\n serie TLV Node Hash 6 sent  \n");
-    else
-        printf("\n error , serie TLV Node Hash 6 non sent  \n");
-}
 void nodestate(char *buffer,char *data,char *id,short seq,char *hash,int *size){
 int cpt;
     short i=strlen(data)+28;
@@ -467,6 +443,56 @@ unsigned char* parseIp(unsigned char* ipHex)
     return ipRes;
 }
 
+void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr){
+    Triplet *tmp=datalist->tete;
+    SA servaddr;
+    servaddr.sin6_family = AF_INET6;
+
+    int val=1;
+    int poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
+
+
+    val=0;
+    int poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
+    uint16_t port=ntohs(addr->sin6_port);
+    char ip[INET6_ADDRSTRLEN];
+    inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
+    servaddr.sin6_port = htons(port);
+    int p1=inet_pton(AF_INET6,ip,&servaddr.sin6_addr);
+    if(p1==-1)
+    {
+        perror(" ip err ");
+    }
+
+
+
+
+    tlv_chain chaine;
+    memset(&chaine, 0, sizeof(chaine));
+    char *h;
+    char *data=malloc(sizeof(char)*26);
+    unsigned char chainbuff[1024]={0} ;
+    uint16_t l = 0;
+    int len;
+    printf("\n port %d",addr->sin6_port);
+    while (tmp!=NULL){
+        h=Hash(concatTriplet(tmp));
+        uint16_t seq=htons(tmp->numDeSeq);
+        memcpy(data,tmp->id,8);
+        memcpy(&data[8],&seq,2);
+        memcpy(&data[10],h,16);
+        add_tlv(&chaine,NODE_HASH,26,data);
+        tmp=tmp->suivant;
+    }
+    tlv_chain_toBuff(&chaine, chainbuff, &l);
+    char *paquet=chain2Paquet(chainbuff,l);
+    printf("\n the L is %d \n",l);
+
+    if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+        printf("\n serie TLV Node Hash 6 sent  \n");
+    else
+        printf("\n error , serie TLV Node Hash 6 non sent  \n");
+}
 
 void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
     int length;
@@ -610,7 +636,8 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             seq=ntohs(seq);
             h=malloc(sizeof(char)*16);
             memcpy(h,&(list->object[index].data[10]),16);
-            Triplet *d=Getdataintable(datalist,id);
+            printf("\n hhhhh type 6666 ");
+           Triplet *d=Getdataintable(datalist,id);
             if(d==NULL){
                 /// rien a faire
             } else if (strcmp(h,Hash(concatTriplet(d)))!=0){
