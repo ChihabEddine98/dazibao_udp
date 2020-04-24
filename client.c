@@ -53,12 +53,12 @@ int main() {
 
 
         Data *datatable=malloc(sizeof(Data));
-        insererData(datatable,"0e:7e:d5",2222,"hello world");
+        insererData(datatable,"0e:7e:d5",10345,"hello world");
         Voisins *voisins=malloc(sizeof(Voisins));
         voisins->used=0;
-    for (int j = 0; j <15 ; j++) {
-        voisins->TableDevoisins[j]=NULL;
-    }
+        for (int j = 0; j <15 ; j++) {
+          voisins->TableDevoisins[j]=NULL;
+        }
 
         unsigned char *chainbuff=malloc(1024) ;
         uint16_t l = 0;

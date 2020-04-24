@@ -279,16 +279,17 @@ void NodeState(Data *datalist,char *node,int len,SA *addr){
     len=len-26;
     char *data=malloc(sizeof(char)*len);
     memcpy(data,&node[26],len);
+    int num=pow(2,16);
     Triplet *d=Getdataintable(datalist,id);
     if(d!=NULL){
         if (strcmp(h,Hash(concatTriplet(d)))!=0){
          if(strcmp(id,"0e:7e:d5")==0){// cas 1
-             if((seq-d->numDeSeq)%(int)(pow(2,16))<32768){
-                 d->numDeSeq=(seq+1)%(int)(pow(2,16));
+             if((seq-d->numDeSeq)%num<32768){
+                 d->numDeSeq=(seq+1)%num;
              }
          }else{// cas 2
-             if((seq-d->numDeSeq)%(int)(pow(2,16))<32768){
-                 d->numDeSeq=(seq+1)%(int)(pow(2,16));
+             if((seq-d->numDeSeq)%num<32768){
+                 d->numDeSeq=(seq+1)%num;
                  supprimerData(datalist,id);
                  insererData(datalist,id,seq,d->data);
              }
