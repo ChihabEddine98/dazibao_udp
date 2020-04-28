@@ -247,7 +247,7 @@ void supprimerData(Data *datalist,char *id){
     return;
 }
 
-void NodeState(Data *datalist,char *node,int len,SA *addr){
+void NodeState(Data *datalist,char *node,int len,SA *addr,int sockfd){
     char *id=malloc(sizeof(char)*8);
     memcpy(id,node,8);
     uint16_t seq;
@@ -275,6 +275,8 @@ void NodeState(Data *datalist,char *node,int len,SA *addr){
          }
 
         }else{
+            char *msg="erreur dans le hash";
+            sendWarning(msg,addr,sockfd);
        /// rien a faire
         }
     }else{
@@ -538,11 +540,13 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             Voisin *v=hasardVoisin(voisins);
             servaddr.sin6_port = htons(v->port);
             int p;
-            p1=inet_pton(AF_INET6,v->ip,&servaddr.sin6_addr);
-            if(p1==-1)
-            {
-                perror(" ip err ");
-            }
+            memcpy(&servaddr.sin6_addr,v->ip,16);
+
+          //  p1=inet_pton(AF_INET6,v->ip,&servaddr.sin6_addr);
+           // if(p1==-1)
+           // {
+             //   perror(" ip err ");
+            //}
             tlv_chain neigh;
             memset(&neigh, 0, sizeof(neigh));
             data=malloc(strlen(v->ip)+2);
@@ -693,7 +697,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
         case NODE_STATE:
             printf("type 8");
              // Ce TLV est envoyé en réponse à un TLVNode State Request
-             NodeState(datalist,list->object[index].data,list->object[index].size,addr);
+             NodeState(datalist,list->object[index].data,list->object[index].size,addr,sockfd);
 
             break;
         case WARNING:
@@ -739,8 +743,7 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd)
             return;
         }
         printf("\n\nin the beg  ip =%s  and port =%d ",ip,port);
-        miseAjourVoisins(voisins,ip,port);
-
+        miseAjourVoisins(voisins,addr,port);
         memcpy(&len,&buf[2],2);
         len=ntohs(len);
         parserV1(buf+4,&list,len);
@@ -761,11 +764,12 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd)
 
 }
 
-int rechercheEmetteur(Voisins *voisins,char *ip, uint16_t port){
+int rechercheEmetteur(Voisins *voisins,SA *addr, uint16_t port){
     int count=0;
     while(count<Max_voisin){
         if(voisins->TableDevoisins[count]!=NULL){
-            if(voisins->TableDevoisins[count]->port==port && strcmp(ip,voisins->TableDevoisins[count]->ip)==0){
+
+            if(voisins->TableDevoisins[count]->port==port && memcmp(voisins->TableDevoisins[count]->ip,&addr->sin6_addr,16)==0){
                 return 1;
             }
         }
@@ -773,7 +777,7 @@ int rechercheEmetteur(Voisins *voisins,char *ip, uint16_t port){
     }
     return 0;
 }
-void addVoisin(Voisins *voisins,char *ip, uint16_t port){
+void addVoisin(Voisins *voisins,SA *addr, uint16_t port){
     struct timespec now;
     int rc=clock_gettime(CLOCK_REALTIME,&now);
     if(rc<0)
@@ -788,7 +792,7 @@ void addVoisin(Voisins *voisins,char *ip, uint16_t port){
             voisins->TableDevoisins[count]=malloc(sizeof(Voisin));
             voisins->TableDevoisins[count]->port=port;
             voisins->TableDevoisins[count]->ip=malloc(45);
-            strcpy(voisins->TableDevoisins[count]->ip,ip);
+            memcpy(voisins->TableDevoisins[count]->ip,&addr->sin6_addr,16);
             voisins->TableDevoisins[count]->date=now;
             voisins->TableDevoisins[count]->permanent=0;
             voisins->used+=1;
@@ -797,7 +801,7 @@ void addVoisin(Voisins *voisins,char *ip, uint16_t port){
         count++;
     }
 }
-void modifierVoisin(Voisins *voisins,char *ip, uint16_t port){
+void modifierVoisin(Voisins *voisins,SA *addr, uint16_t port){
     struct timespec now;
     int rc=clock_gettime(CLOCK_REALTIME,&now);
     if(rc<0)
@@ -808,7 +812,7 @@ void modifierVoisin(Voisins *voisins,char *ip, uint16_t port){
     int count=0;
     while(count<Max_voisin){
         if(voisins->TableDevoisins[count]!=NULL){
-            if(voisins->TableDevoisins[count]->port==port && strcmp(ip,voisins->TableDevoisins[count]->ip)==0){
+            if(voisins->TableDevoisins[count]->port==port && memcmp(voisins->TableDevoisins[count]->ip,&addr->sin6_addr,16)==0){
                 printf("\nmodifier la data\n");
                 voisins->TableDevoisins[count]->date=now;
             }
@@ -816,13 +820,13 @@ void modifierVoisin(Voisins *voisins,char *ip, uint16_t port){
         count++;
     }
 }
-void miseAjourVoisins(Voisins *voisins,char *ip, uint16_t port){
-    if(rechercheEmetteur(voisins,ip,port)==1){
+void miseAjourVoisins(Voisins *voisins,SA *addr, uint16_t port){
+    if(rechercheEmetteur(voisins,addr,port)==1){
         printf("\n modifier");
-        modifierVoisin(voisins,ip,port);
+        modifierVoisin(voisins,addr,port);
     }else{
         printf("\n add");
-        addVoisin(voisins,ip,port);
+        addVoisin(voisins,addr,port);
     }
 }
 Voisin *hasardVoisin(Voisins *voisins){
