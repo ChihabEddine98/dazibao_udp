@@ -424,6 +424,32 @@ unsigned char* parseIp(unsigned char* ipHex)
 
     return ipRes;
 }
+void sendWarning(char *msg,int sockfd,SA *addr){
+    SA servaddr;
+    servaddr.sin6_family = AF_INET6;
+    uint16_t port=ntohs(addr->sin6_port);
+    char ip[INET6_ADDRSTRLEN];
+    inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
+    servaddr.sin6_port = htons(port);
+    int p1=inet_pton(AF_INET6,ip,&servaddr.sin6_addr);
+    if(p1==-1)
+    {
+        perror(" ip err ");
+    }
+    tlv_chain chaine;
+    unsigned char chainbuff[1024]={0} ;
+    uint16_t l = 0;
+    memset(&chaine, 0, sizeof(chaine));
+    add_tlv(&chaine,WARNING,strlen(msg),msg);
+    tlv_chain_toBuff(&chaine, chainbuff, &l);
+    char *paquet=chain2Paquet(chainbuff,l);
+    if (sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+        printf("\n paquet type 9 sent  \n");
+    else printf("\n error , paquet type 9 non sent  \n");
+
+
+
+}
 
 void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr){
     Triplet *tmp=datalist->tete;
@@ -671,7 +697,8 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
 
             break;
         case WARNING:
-            printf("type 9");
+            printf("\n WARNING:  \n");
+            printf("- %s \n",list->object[index].data);
             break;
         default:
             printf("default type");

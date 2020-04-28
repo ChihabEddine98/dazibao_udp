@@ -13,7 +13,19 @@
 
 int main() {
 
-
+    char *ip="::ffff:12.13.14.13";
+    int i;
+    unsigned char word[] = "::ffff:12.13.14.13";
+    char hex[50];
+    for ( i = 0; i < strlen ( word ); i++ )
+    {
+        char temp[5];
+        sprintf( temp, "%X", word[i] );
+        strcat( hex, temp );
+    }
+    printf( "\nhexcode: %s\n", hex );
+   // printf("\n la=%s",parseIp(res));
+/*
 char *ip="123456789";
      const char *s = "szczaw";
      unsigned char *d =Hash(s);

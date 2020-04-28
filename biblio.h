@@ -118,5 +118,7 @@ void *miseAjour20s(void *args);
 void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr);
 void nodestate(char *buffer,char *data,char *id,short seq,char *hash,int *size);
 void supprimerData(Data *datalist,char *id);
+unsigned char* parseIp(unsigned char* ipHex);
+void sendWarning(char *msg,int sockfd,SA *addr);
 
 #endif //PROJETR_BIBLIO_H
