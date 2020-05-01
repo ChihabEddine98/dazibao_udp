@@ -142,7 +142,7 @@ int32_t Buff_to_tlv_chain(const unsigned char *src,  tlv_chain *dest, int32_t le
 
 }
 
-int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
+int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length,int sockfd,SA *addr)
 {
     if(list == NULL || src == NULL)
         return -1;
@@ -168,6 +168,11 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length)
             memcpy(&list->object[list->used].size, &src[counter], 1);
             printf("\n tailleV1=%d",list->object[list->used].size);
             counter += 1;
+            if((length-counter)<list->object[list->used].size){
+                char *msg=" TLV déborder du paquet";
+                sendWarning(msg,sockfd,addr);
+                return 0;
+            }
             if(list->object[list->used].type!=2 && list->object[list->used].type!=5 ) {
 
                 // deserialize data itself, only if data is not NULL
@@ -541,12 +546,6 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             servaddr.sin6_port = htons(v->port);
             int p;
             memcpy(&servaddr.sin6_addr,v->ip,16);
-
-          //  p1=inet_pton(AF_INET6,v->ip,&servaddr.sin6_addr);
-           // if(p1==-1)
-           // {
-             //   perror(" ip err ");
-            //}
             tlv_chain neigh;
             memset(&neigh, 0, sizeof(neigh));
             data=malloc(strlen(v->ip)+2);
@@ -577,19 +576,11 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             short port2=ntohs(port);
             printf("\n port =%d ",port);
             printf("\n ip formatted : %s\n",parseIp(ip));
-
-                //   for (int i = 0; i <16 ; i++) {
-                //      printf(" %02x",ip[i]);
-                //    }
             servaddr.sin6_family = AF_INET6;
-            // servaddr.sin6_port = htons(port);
-            // p1=inet_pton(AF_INET6,parseIp(ip),&servaddr.sin6_addr);
-            servaddr.sin6_port = htons(SERVER_PORT);
-            p1=inet_pton(AF_INET6,SERVER_IP,&servaddr.sin6_addr);
-            if(p1==-1)
-            {
-                perror(" ip err ");
-            }
+             servaddr.sin6_port = htons(port2);
+             printf("\n djelid ip:%s",parseIp(ip));
+            memcpy(&servaddr.sin6_addr,ip,16);
+           //  p1=inet_pton(AF_INET6,parseIp(ip),&servaddr.sin6_addr);
             char *net=NetworkHash(datalist);
             add_tlv(&netHash,NET_HASH,strlen(net),net);
             tlv_chain_toBuff(&netHash,chainbuff, &l);
@@ -725,42 +716,51 @@ char* chain2Paquet (char *chain,uint16_t  len)
 
 }
 
-void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd){
+void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd,int lenp){
     int index=0;
     tlv_chain list;
     memset(&list, 0, sizeof(list));
     uint16_t len;
     char taile[2];
 
-    if(buf[0]==95 && buf[1]==1)
-    {
-        uint16_t port=ntohs(addr->sin6_port);
+    if(buf[0]==95 && buf[1]==1) {
+        uint16_t port = ntohs(addr->sin6_port);
         // char *ip=inet_ntop(addr->sin6_addr);
         char ip[INET6_ADDRSTRLEN];
-        inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
-        if(rechercheEmetteur(voisins,ip,port)==0 && voisins->used==15){
+        inet_ntop(AF_INET6, &addr->sin6_addr, ip, sizeof(ip));
+        if (rechercheEmetteur(voisins, ip, port) == 0 && voisins->used == 15) {
             printf(" \nerror ---- : le paquet est ignoré \n");
             return;
         }
-        printf("\n\nin the beg  ip =%s  and port =%d ",ip,port);
-        miseAjourVoisins(voisins,addr,port);
-        memcpy(&len,&buf[2],2);
-        len=ntohs(len);
-        parserV1(buf+4,&list,len);
-        printf("\nused=%d\n",list.used);
-      while(index < list.used)
-      {
-        parserTLV(datalist,voisins,&list,index,addr,sockfd);
-        index++;
-      }
+        printf("\n\nin the beg  ip =%s  and port =%d ", ip, port);
+        printf("\n\nthe nb of voisins =%d ", nbVoisin(voisins));
+        printf("\n\nthe length of paquet send =%d ", lenp);
 
+        miseAjourVoisins(voisins, addr, port);
+        memcpy(&len, &buf[2], 2);
+        len = ntohs(len);
+        printf("\n\nthe length of paquet in=%d ", len);
+        int paquettaille = len + 4;
+        if (paquettaille > (lenp - 4)) {
+          char msg[45];
+          sprintf(msg,"the paquet size is larger then %d",lenp-4);
+          sendWarning(msg,sockfd,addr);
+        } else {
+            parserV1(buf + 4, &list, len,sockfd,addr);
+            printf("\nused=%d\n", list.used);
+            while (index < list.used) {
+                parserTLV(datalist, voisins, &list, index, addr, sockfd);
+                index++;
+            }
+
+        }
     }
-    else 
-    {
-        printf(" error ---- : paquet non reconnu");
-    }
-    
-    
+        else
+        {
+            printf(" error ---- : paquet non reconnu");
+        }
+
+
 
 }
 
@@ -828,6 +828,17 @@ void miseAjourVoisins(Voisins *voisins,SA *addr, uint16_t port){
         printf("\n add");
         addVoisin(voisins,addr,port);
     }
+}
+int nbVoisin(Voisins *voisins){
+    int count=0;
+    int cpt=0;
+    while(count<Max_voisin){
+        if(voisins->TableDevoisins[count]!=NULL){
+            cpt++;
+        }
+        count++;
+    }
+    return cpt;
 }
 Voisin *hasardVoisin(Voisins *voisins){
     int nbgen=rand()%voisins->used;

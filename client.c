@@ -119,7 +119,7 @@ int main() {
                     else
                     {
                         // Parser Maquet heree !!! 
-                        parserPaquet(datatable,voisins,buffer, &servaddr,sockfd);
+                        parserPaquet(datatable,voisins,buffer, &servaddr,sockfd,len);
                     }
                     
                 }

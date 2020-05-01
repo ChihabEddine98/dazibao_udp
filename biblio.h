@@ -97,11 +97,11 @@ int16_t tlv_chain_toBuff( tlv_chain *a, unsigned char *dest, int16_t *count);
 int32_t Buff_to_tlv_chain(const unsigned char *src,  tlv_chain *dest, int32_t length);
 int32_t afficher_tlv_chain(tlv_chain *a);
 int32_t  free_tlv_list( tlv_chain *a);
-int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length);
+int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length,int sockfd,SA *addr);
 char* chain2Paquet (char *chain,uint16_t  len);
 
 void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd);
-void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd);
+void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd,int lenp);
 
 void parcoursVoisins(Voisins *voisins);
 void moinsde5voisins(Voisins *voisins,int sockfd);
@@ -120,5 +120,6 @@ void nodestate(char *buffer,char *data,char *id,short seq,char *hash,int *size);
 void supprimerData(Data *datalist,char *id);
 unsigned char* parseIp(unsigned char* ipHex);
 void sendWarning(char *msg,int sockfd,SA *addr);
+int nbVoisin(Voisins *voisins);
 
 #endif //PROJETR_BIBLIO_H
