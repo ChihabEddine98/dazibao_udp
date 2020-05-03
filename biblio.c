@@ -282,13 +282,13 @@ void NodeState(Data *datalist,char *node,int len,char * ips,uint16_t ports,int s
     Triplet *d=Getdataintable(datalist,id);
     if(d!=NULL){
        // printf("\n mama data=%s",d->data);
-        if (strcmp(h,Hash(concatTriplet(d)))!=0){
-         if(strcmp(id,"0e:7e:d5")==0){// cas 1
+        if (memcmp(h,Hash(concatTriplet(d)),16)!=0){
+         if(memcmp(id,"0e:7e:d5",8)==0){// cas 1
              if((seq-d->numDeSeq)%num<32768){
                  d->numDeSeq=(seq+1)%num;
              }
          }else{// cas 2
-             if((seq-d->numDeSeq)%num<32768){
+             if(((seq-d->numDeSeq)%num)<32768){
                  d->numDeSeq=(seq+1)%num;
                  supprimerData(datalist,id);
                  insererData(datalist,id,seq,d->data);
