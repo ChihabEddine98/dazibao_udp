@@ -64,14 +64,17 @@ int main() {
         uint16_t l = 0;
         char *paquet;
         tlv_chain neigh;
+        char *net=NetworkHash(datatable);
         memset(&neigh, 0, sizeof(neigh));
-        add_tlv(&neigh,NEIGH_R,0,NULL);
+        // add_tlv(&neigh,NEIGH_R,0,NULL);
+        //add_tlv(&neigh,NET_HASH,strlen(net),net);
+        add_tlv(&neigh,NET_STATE_R,0,NULL);
         int n=0;
         int len;
         tlv_chain_toBuff(&neigh, chainbuff, &l);
         paquet=chain2Paquet(chainbuff,l);
         n=sendto(sockfd, (char *)paquet,l+4,MSG_CONFIRM, (const struct sockaddr *) &servaddr,sizeof(servaddr));
-        if (n>0) printf("paquet  2 sent.\n");
+        if (n>0) printf("paquet  5 sent.\n");
 
         //n = recvfrom(sockfd, (char *)buffer, MAXLINE,MSG_WAITALL, (struct sockaddr *) &servaddr,&len);
        //if(n>0){
@@ -86,6 +89,17 @@ int main() {
         perror("pthread_create");
         return EXIT_FAILURE;
        }
+
+    pthread_t thread2;
+    arg2 *a=malloc(sizeof(arg2));
+    a->sockfd=sockfd;
+    a->arg1=voisins;
+    a->datalist=datatable;
+    if(pthread_create(&thread2, NULL,sendNet20s,a) == -1) {
+        perror("pthread_create");
+        return EXIT_FAILURE;
+    }
+
 
     fd_set sockLibres,sockActuels;
 
@@ -119,7 +133,7 @@ int main() {
                     else
                     {
                         // Parser Maquet heree !!! 
-                        parserPaquet(datatable,voisins,buffer, &servaddr,sockfd,len);
+                        parserPaquet(datatable,voisins,buffer, &servaddr,sockfd,n);
                     }
                     
                 }

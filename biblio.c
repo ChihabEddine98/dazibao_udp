@@ -142,7 +142,7 @@ int32_t Buff_to_tlv_chain(const unsigned char *src,  tlv_chain *dest, int32_t le
 
 }
 
-int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length,int sockfd,SA *addr)
+int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length,int sockfd,char *ips,uint16_t ports)
 {
     if(list == NULL || src == NULL)
         return -1;
@@ -152,25 +152,25 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length,int
         return -1;
 
     int16_t counter = 0;
-    printf("\nparser la and length =%d\n",length);
+  //  printf("\nparser la and length =%d\n",length);
     while(counter < length)
     {
         if(list->used == MAX_TLV_OBJECTS)
             return -1;
         // deserialize type
         list->object[list->used].type = src[counter];
-        printf("\n type V1=%d",list->object[list->used].type);
+     //   printf("\n type V1=%d",list->object[list->used].type);
 
         counter++;
 
         if(list->object[list->used].type!=0) {
             // deserialize size
             memcpy(&list->object[list->used].size, &src[counter], 1);
-            printf("\n tailleV1=%d",list->object[list->used].size);
+           // printf("\n tailleV1=%d",list->object[list->used].size);
             counter += 1;
             if((length-counter)<list->object[list->used].size){
                 char *msg=" TLV déborder du paquet";
-                sendWarning(msg,sockfd,addr);
+                sendWarning(msg,sockfd,ips,ports);
                 return 0;
             }
             if(list->object[list->used].type!=2 && list->object[list->used].type!=5 ) {
@@ -179,7 +179,7 @@ int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length,int
                 if (list->object[list->used].size > 0) {
                     list->object[list->used].data = malloc(list->object[list->used].size);
                     memcpy(list->object[list->used].data, &src[counter], list->object[list->used].size);
-                    printf("\n dataV1=%s",list->object[list->used].data);
+                   // printf("\n dataV1=%s",list->object[list->used].data);
 
                     counter += list->object[list->used].size;
                 } else {
@@ -218,14 +218,29 @@ char *concatTriplet(Triplet *d){
     memcpy(&data[10],d->data,strlen(d->data));
     return data;
 }
+void afficherdata(Data *datalist){
+    Triplet *tmp=datalist->tete;
+    printf("\n Affichage \n");
 
+    while (tmp!=NULL){
+        for (int i = 0; i <8 ; i++) {
+            printf("%02x",tmp->id[i]);
+        }
+        printf("  : %s \n",tmp->data);
+        tmp=tmp->suivant;
+    }
+    printf("\n Fin \n");
+}
 
 Triplet *Getdataintable(Data *datalist,char id[8]){
     Triplet *tmp=datalist->tete;
     Triplet *res=NULL;
     while (tmp!=NULL){
-        printf("\n [%s] [%s] cmp %d",id ,tmp->id,memcmp(id,tmp->id,8));
-        if(memcmp(tmp->id,id,8)==0) return tmp;
+
+        if(memcmp(tmp->id,id,8)==0){
+           // printf("\n [%s] [%s] cmp %d",id ,tmp->id,memcmp(id,tmp->id,8));
+            return tmp;
+        }
         tmp=tmp->suivant;
     }
     return res;
@@ -252,7 +267,7 @@ void supprimerData(Data *datalist,char *id){
     return;
 }
 
-void NodeState(Data *datalist,char *node,int len,SA *addr,int sockfd){
+void NodeState(Data *datalist,char *node,int len,char * ips,uint16_t ports,int sockfd){
     char *id=malloc(sizeof(char)*8);
     memcpy(id,node,8);
     uint16_t seq;
@@ -266,6 +281,7 @@ void NodeState(Data *datalist,char *node,int len,SA *addr,int sockfd){
     int num=pow(2,16);
     Triplet *d=Getdataintable(datalist,id);
     if(d!=NULL){
+       // printf("\n mama data=%s",d->data);
         if (strcmp(h,Hash(concatTriplet(d)))!=0){
          if(strcmp(id,"0e:7e:d5")==0){// cas 1
              if((seq-d->numDeSeq)%num<32768){
@@ -280,8 +296,8 @@ void NodeState(Data *datalist,char *node,int len,SA *addr,int sockfd){
          }
 
         }else{
-            char *msg="erreur dans le hash";
-            sendWarning(msg,addr,sockfd);
+            char *msg="Inconsistent hash in node state";
+            sendWarning(msg,sockfd,ips,ports);
        /// rien a faire
         }
     }else{
@@ -431,14 +447,14 @@ unsigned char* parseIp(unsigned char* ipHex)
 
     return ipRes;
 }
-void sendWarning(char *msg,int sockfd,SA *addr){
+void sendWarning(char *msg,int sockfd,char * ips,uint16_t ports){
     SA servaddr;
     servaddr.sin6_family = AF_INET6;
-    uint16_t port=ntohs(addr->sin6_port);
+   // uint16_t port=ntohs(addr->sin6_port);
     char ip[INET6_ADDRSTRLEN];
-    inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
-    servaddr.sin6_port = htons(port);
-    int p1=inet_pton(AF_INET6,ip,&servaddr.sin6_addr);
+    //inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
+    servaddr.sin6_port = htons(ports);
+    int p1=inet_pton(AF_INET6,ips,&servaddr.sin6_addr);
     if(p1==-1)
     {
         perror(" ip err ");
@@ -458,7 +474,7 @@ void sendWarning(char *msg,int sockfd,SA *addr){
 
 }
 
-void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr){
+void sendSerieTlvNode(Data *datalist,int sockfd,char *ips,uint16_t ports){
     Triplet *tmp=datalist->tete;
     SA servaddr;
     servaddr.sin6_family = AF_INET6;
@@ -469,11 +485,11 @@ void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr){
 
     val=0;
     //int poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
-    uint16_t port=ntohs(addr->sin6_port);
+    //uint16_t port=ntohs(addr->sin6_port);
     char ip[INET6_ADDRSTRLEN];
-    inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
-    servaddr.sin6_port = htons(port);
-    int p1=inet_pton(AF_INET6,ip,&servaddr.sin6_addr);
+    //inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
+    servaddr.sin6_port = htons(ports);
+    int p1=inet_pton(AF_INET6,ips,&servaddr.sin6_addr);
     if(p1==-1)
     {
         perror(" ip err ");
@@ -486,10 +502,10 @@ void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr){
     memset(&chaine, 0, sizeof(chaine));
     char *h;
     char *data=malloc(sizeof(char)*26);
-    unsigned char chainbuff[1024]={0} ;
+    unsigned char chainbuff[12000]={0} ;
     uint16_t l = 0;
     int len;
-    printf("\n port %d",addr->sin6_port);
+   // printf("\n port %d",addr->sin6_port);
     while (tmp!=NULL){
         h=Hash(concatTriplet(tmp));
         uint16_t seq=htons(tmp->numDeSeq);
@@ -509,12 +525,12 @@ void sendSerieTlvNode(Data *datalist,int sockfd,SA *addr){
         printf("\n error , serie TLV Node Hash 6 non sent  \n");
 }
 
-void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *addr,int sockfd){
+void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * ips,uint16_t ports,int sockfd){
     int length;
     char *body;
     char *data;
     char* paquet;
-    char *id;
+    unsigned char *id;
     char *h;
     int len;
     int p1;
@@ -524,12 +540,6 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
     uint16_t seq;
     SA servaddr;
     servaddr.sin6_family = AF_INET6;
-    val=1;
-  //  poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
-
-    val=0;
-    //poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
-
     unsigned char chainbuff[1024]={0} ;
     uint16_t l = 0;
     switch (list->object[index].type){
@@ -582,7 +592,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             memcpy(&servaddr.sin6_addr,ip,16);
            //  p1=inet_pton(AF_INET6,parseIp(ip),&servaddr.sin6_addr);
             char *net=NetworkHash(datalist);
-            add_tlv(&netHash,NET_HASH,strlen(net),net);
+            add_tlv(&netHash,NET_HASH,16,net);
             tlv_chain_toBuff(&netHash,chainbuff, &l);
             paquet=chain2Paquet(chainbuff,l);
             if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
@@ -593,11 +603,18 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
         case NET_HASH:
             printf("type 4");
             //Ce TLV indique l’idée que se fait l’émetteur de l’état actuel du réseau
-            port=ntohs(addr->sin6_port);
+           // port=ntohs(addr->sin6_port);
             // char *ip=inet_ntop(addr->sin6_addr);
             ip[INET6_ADDRSTRLEN];
-            inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
-            servaddr.sin6_port = htons(port);
+            //inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
+            //memcpy(&servaddr.sin6_addr,&addr->sin6_addr,16);
+            //memcpy(&servaddr.sin6_addr,ip,16);
+            servaddr.sin6_port = htons(ports);
+            p=inet_pton(AF_INET6,ips,&servaddr.sin6_addr);
+            if(p==-1)
+            {
+                perror(" ip err ");
+            }
             char *myHash=NetworkHash(datalist);
             if(strcmp(myHash,list->object[index].data)!=0){
                 tlv_chain netstate;
@@ -616,30 +633,45 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
         case NET_STATE_R:
             printf("type 5");
             //Ce TLV demande au récepteur d’envoyer une série de TLVNode Hash
-            sendSerieTlvNode(datalist,sockfd,addr);
+            sendSerieTlvNode(datalist,sockfd,ips,ports);
             break;
         case NODE_HASH:
             printf("type 6");
 
-            port=ntohs(addr->sin6_port);
+          //  port=ntohs(addr->sin6_port);
             // char *ip=inet_ntop(addr->sin6_addr);
-            ip[INET6_ADDRSTRLEN];
-            inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
-            servaddr.sin6_port = htons(port);
+            //ip[INET6_ADDRSTRLEN];
+            //inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
+           // memcpy(&servaddr.sin6_addr,&addr->sin6_addr,16);
+            //memcpy(&servaddr.sin6_addr,ip,16);
+
+            servaddr.sin6_port = htons(ports);
+            p=inet_pton(AF_INET6,ips,&servaddr.sin6_addr);
+            if(p==-1)
+            {
+                perror(" ip err ");
+            }
            //Ce TLV est envoyé en réponse à un TLVNetwork State Request.
             id=malloc(sizeof(char)*8);
             memcpy(id,list->object[index].data,8);
+
             memcpy(&seq,&(list->object[index].data[8]),2);
             seq=ntohs(seq);
             h=malloc(sizeof(char)*16);
             memcpy(h,&(list->object[index].data[10]),16);
-            printf("\n hhhhh type 6666 ");
+
+            tlv_chain netstatereq;
+            memset(&netstatereq, 0, sizeof(netstatereq));
            Triplet *d=Getdataintable(datalist,id);
             if(d==NULL){
-                /// rien a faire
+                add_tlv(&netstatereq,NODE_STATE_R,8,id);
+                tlv_chain_toBuff(&netstatereq, chainbuff, &l);
+                paquet=chain2Paquet(chainbuff,l);
+               if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+                    printf("\n paquet type 7 sent ! \n");
+                else  printf("\n error , paquet type 7 non sent  \n");
             } else if (strcmp(h,Hash(concatTriplet(d)))!=0){
-                tlv_chain netstatereq;
-                memset(&netstatereq, 0, sizeof(netstatereq));
+               // printf("\n equaaaa\n ");
                 add_tlv(&netstatereq,NODE_STATE_R,8,id);
                 tlv_chain_toBuff(&netstatereq, chainbuff, &l);
                 paquet=chain2Paquet(chainbuff,l);
@@ -654,12 +686,16 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
             printf("type 7");
             //Ce TLV demande au récepteur d’envoyer un TLVNode Statedécrivant l’état du nœud indiquépar le champNode Id
             char *idnode=list->object[index].data;
-
-            port=ntohs(addr->sin6_port);
+            //port=ntohs(addr->sin6_port);
             // char *ip=inet_ntop(addr->sin6_addr);
             ip[INET6_ADDRSTRLEN];
-            inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
-            servaddr.sin6_port = htons(port);
+            //inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
+            servaddr.sin6_port = htons(ports);
+            p=inet_pton(AF_INET6,ips,&servaddr.sin6_addr);
+            if(p==-1)
+            {
+                perror(" ip err ");
+            }
             tlv_chain node_state;
             memset(&node_state, 0, sizeof(node_state));
             Triplet *d1=Getdataintable(datalist,idnode);
@@ -670,14 +706,14 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
                 uint16_t seqno =htons(d1->numDeSeq);
                 memcpy(&toSend[8], &seqno, 2);
                 char *nHash = Hash(concatTriplet(d1));
-                printf("\nHAsh :%s",nHash);
+              //  printf("\nHAsh :%s",nHash);
                 memcpy(&toSend[10], nHash, 16);
                 memcpy(&toSend[26], d1->data, strlen(d1->data));
-                printf("\nla taille de tosend est :%d",strlen(toSend));
+                //printf("\nla taille de tosend est :%d",strlen(toSend));
                 add_tlv(&node_state, NODE_STATE, tailletosend, toSend);
                 tlv_chain_toBuff(&node_state, chainbuff, &l);
                 paquet = chain2Paquet(chainbuff,l);
-                printf("\nla taille l est:%d",l);
+                //printf("\nla taille l est:%d",l);
                 if (sendto(sockfd, (const char *) paquet,l + 4, 0, (const SA *) &servaddr, sizeof(servaddr)) > 0)
                     printf("\n paquet type 8 sent  \n");
                 else printf("\n error , paquet type 8 non sent  \n");
@@ -688,7 +724,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,SA *add
         case NODE_STATE:
             printf("type 8");
              // Ce TLV est envoyé en réponse à un TLVNode State Request
-             NodeState(datalist,list->object[index].data,list->object[index].size,addr,sockfd);
+             NodeState(datalist,list->object[index].data,list->object[index].size,ips,ports,sockfd);
 
             break;
         case WARNING:
@@ -710,7 +746,9 @@ char* chain2Paquet (char *chain,uint16_t  len)
     res[0]=0b01011111;
     res[1]=1;
     memcpy(res+2,&lBe,2);
-    memcpy(res+4,chain,len);
+    if(len>1020){
+        memcpy(res+4,chain,1020);
+    }else memcpy(res+4,chain,len);
 
     return res;
 
@@ -732,24 +770,26 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd,
             printf(" \nerror ---- : le paquet est ignoré \n");
             return;
         }
-        printf("\n\nin the beg  ip =%s  and port =%d ", ip, port);
-        printf("\n\nthe nb of voisins =%d ", nbVoisin(voisins));
-        printf("\n\nthe length of paquet send =%d ", lenp);
+       // printf("\n\nin the beg  ip =%s  and port =%d ", ip, port);
+       // printf("\n\nthe nb of voisins =%d ", nbVoisin(voisins));
+       // printf("\n\nthe length of paquet send =%d ", lenp);
 
         miseAjourVoisins(voisins, addr, port);
         memcpy(&len, &buf[2], 2);
         len = ntohs(len);
-        printf("\n\nthe length of paquet in=%d ", len);
+       // printf("\n\nthe length of paquet in=%d ", len);
+       printf("\n \n lenpa=%d and lenin=%d",lenp,len);
         int paquettaille = len + 4;
-        if (paquettaille > (lenp - 4)) {
+        if ( lenp >paquettaille) {
           char msg[45];
-          sprintf(msg,"the paquet size is larger then %d",lenp-4);
-          sendWarning(msg,sockfd,addr);
+          sprintf(msg,"the paquet size is larger then %d",paquettaille);
+          sendWarning(msg,sockfd,ip,port);
         } else {
-            parserV1(buf + 4, &list, len,sockfd,addr);
-            printf("\nused=%d\n", list.used);
+            parserV1(buf + 4, &list, len,sockfd,ip,port);
+            //printf("\nused=%d\n", list.used);
             while (index < list.used) {
-                parserTLV(datalist, voisins, &list, index, addr, sockfd);
+
+                parserTLV(datalist, voisins, &list, index, ip,port, sockfd);
                 index++;
             }
 
@@ -840,6 +880,40 @@ int nbVoisin(Voisins *voisins){
     }
     return cpt;
 }
+void TLVNetworkHash(Voisin *v,Data *datalist,int sockfd){
+    SA servaddr;
+    unsigned char chainbuff[1024]={0} ;
+    uint16_t l = 0;
+    int taille=16;
+    servaddr.sin6_family = AF_INET6;
+    servaddr.sin6_port = htons(v->port);
+    memcpy(&servaddr.sin6_addr,v->ip,16);
+    tlv_chain neigh;
+    memset(&neigh, 0, sizeof(neigh));
+    char *net=NetworkHash(datalist);
+    add_tlv(&neigh,NET_HASH,16,net);
+    tlv_chain_toBuff(&neigh,chainbuff, &l);
+    char *paquet=chain2Paquet(chainbuff,l);
+    if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+    {
+        printf("\n paquet type 4 sent  \n");
+    }
+    else{
+        printf("\n erorr , type 4 non sent");
+    }
+
+
+
+}
+void sendNetHAsh(Voisins *voisins,Data *datalist,int sockfd){
+    int count=0;
+    while(count<Max_voisin){
+        if(voisins->TableDevoisins[count]!=NULL){
+            TLVNetworkHash(voisins->TableDevoisins[count],datalist,sockfd);
+        }
+        count++;
+    }
+}
 Voisin *hasardVoisin(Voisins *voisins){
     int nbgen=rand()%voisins->used;
     int count=0;
@@ -863,11 +937,12 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
         servaddr.sin6_family = AF_INET6;
         servaddr.sin6_port = htons(v->port);
         int p;
-        p=inet_pton(AF_INET6,v->ip,&servaddr.sin6_addr);
-        if(p==-1)
-        {
-            perror(" ip err ");
-        }
+        memcpy(&servaddr.sin6_addr,v->ip,16);
+        //p=inet_pton(AF_INET6,v->ip,&servaddr.sin6_addr);
+        //if(p==-1)
+        //{
+          //  perror(" ip err ");
+        //}
         int n, len;
         tlv_chain chain1, chain2;
         memset(&chain1, 0, sizeof(chain1));
@@ -884,6 +959,16 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
         
         }
 }}
+void *sendNet20s(void *args){
+    arg2 *argss=(arg2 *)args;
+    while (1){
+        printf("\n datalist used  %d",argss->datalist->used);
+        sendNetHAsh(argss->arg1,argss->datalist,argss->sockfd);
+        afficherdata(argss->datalist);
+        sleep(20);
+    }
+    return NULL;
+}
 
 void *miseAjour20s(void *args){
     arg *argss = (arg *)args;
