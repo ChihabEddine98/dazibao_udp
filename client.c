@@ -85,7 +85,7 @@ int main() {
         arg *arg1=malloc(sizeof(arg));
         arg1->sockfd=sockfd;
         arg1->arg1=voisins;
-       if(pthread_create(&thread1, NULL,miseAjou    r20s,arg1) == -1) {
+       if(pthread_create(&thread1, NULL,miseAjour20s,arg1) == -1) {
         perror("pthread_create");
         return EXIT_FAILURE;
        }

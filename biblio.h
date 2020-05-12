@@ -66,6 +66,7 @@ typedef struct Triplet {
    unsigned char  id[8];
     uint16_t numDeSeq;
     char *data;
+    int incr;
     struct Triplet *suivant;
 }Triplet;
 typedef struct {

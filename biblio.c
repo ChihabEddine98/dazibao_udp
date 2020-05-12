@@ -220,7 +220,8 @@ char *concatTriplet(Triplet *d){
 }
 void afficherdata(Data *datalist){
     Triplet *tmp=datalist->tete;
-    printf("\n Affichage \n");
+    printf("\n _________________________________________________________________________________________ ");
+    printf("\n Affichage DATA : \n");
 
     while (tmp!=NULL){
         for (int i = 0; i <8 ; i++) {
@@ -229,8 +230,9 @@ void afficherdata(Data *datalist){
         printf("  : %s \n",tmp->data);
         tmp=tmp->suivant;
     }
-    printf("\n Fin \n");
+    printf("\n _________________________________________________________________________________________ \n");
 }
+
 
 Triplet *Getdataintable(Data *datalist,char id[8]){
     Triplet *tmp=datalist->tete;
@@ -286,10 +288,12 @@ void NodeState(Data *datalist,char *node,int len,char * ips,uint16_t ports,int s
          if(memcmp(id,"0e:7e:d5",8)==0){// cas 1
              if((seq-d->numDeSeq)%num<32768){
                  d->numDeSeq=(seq+1)%num;
+                 d->incr=1;
              }
          }else{// cas 2
              if(((seq-d->numDeSeq)%num)<32768){
                  d->numDeSeq=(seq+1)%num;
+                 d->incr=1;
                  supprimerData(datalist,id);
                  insererData(datalist,id,seq,d->data);
              }
@@ -636,25 +640,16 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
             sendSerieTlvNode(datalist,sockfd,ips,ports);
             break;
         case NODE_HASH:
+            //Ce TLV est envoyé en réponse à un TLVNetwork State Request.
             printf("type 6");
-
-          //  port=ntohs(addr->sin6_port);
-            // char *ip=inet_ntop(addr->sin6_addr);
-            //ip[INET6_ADDRSTRLEN];
-            //inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
-           // memcpy(&servaddr.sin6_addr,&addr->sin6_addr,16);
-            //memcpy(&servaddr.sin6_addr,ip,16);
-
             servaddr.sin6_port = htons(ports);
             p=inet_pton(AF_INET6,ips,&servaddr.sin6_addr);
             if(p==-1)
             {
                 perror(" ip err ");
             }
-           //Ce TLV est envoyé en réponse à un TLVNetwork State Request.
             id=malloc(sizeof(char)*8);
             memcpy(id,list->object[index].data,8);
-
             memcpy(&seq,&(list->object[index].data[8]),2);
             seq=ntohs(seq);
             h=malloc(sizeof(char)*16);
@@ -670,8 +665,9 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
                if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
                     printf("\n paquet type 7 sent ! \n");
                 else  printf("\n error , paquet type 7 non sent  \n");
-            } else if (strcmp(h,Hash(concatTriplet(d)))!=0){
-               // printf("\n equaaaa\n ");
+            } else if(d->incr==1){
+                d->incr=0;
+            //else if (memcmp(h,Hash(concatTriplet(d)),8)!=0){
                 add_tlv(&netstatereq,NODE_STATE_R,8,id);
                 tlv_chain_toBuff(&netstatereq, chainbuff, &l);
                 paquet=chain2Paquet(chainbuff,l);
@@ -841,6 +837,20 @@ void addVoisin(Voisins *voisins,SA *addr, uint16_t port){
         count++;
     }
 }
+void affichervoisins(Voisins *voisins){
+    printf("\n _________________________________________________________________________________________ ");
+    printf("\n Affichage VOISINS : \n");
+    int count=0;
+    while(count<Max_voisin){
+        if(voisins->TableDevoisins[count]!=NULL){
+            printf("\n port =%d || IP = %s",voisins->TableDevoisins[count]->port,parseIp(voisins->TableDevoisins[count]->ip));
+        }
+        count++;
+    }
+
+    printf("\n _________________________________________________________________________________________ \n");
+
+}
 void modifierVoisin(Voisins *voisins,SA *addr, uint16_t port){
     struct timespec now;
     int rc=clock_gettime(CLOCK_REALTIME,&now);
@@ -958,13 +968,16 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
             printf("paquet 2 (NEIGH_REQUEST) sent.\n");
         
         }
-}}
+}
+}
+
 void *sendNet20s(void *args){
     arg2 *argss=(arg2 *)args;
     while (1){
         printf("\n datalist used  %d",argss->datalist->used);
         sendNetHAsh(argss->arg1,argss->datalist,argss->sockfd);
         afficherdata(argss->datalist);
+        affichervoisins(argss->arg1);
         sleep(20);
     }
     return NULL;
@@ -1022,6 +1035,7 @@ char *NetworkHash(Data *datalist){
 void insererData(Data *datalist,char *id,uint16_t seq,char *donnee){
     Triplet *t=malloc(sizeof(Triplet));
     t->numDeSeq=seq;
+    t->incr=0;
     //memcpy(t->numDeSeq,seq,2);
     memcpy(t->id,id,8);
     t->data=malloc(strlen(donnee));
