@@ -481,13 +481,13 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
     uint16_t l = 0;
     switch (list->object[index].type){
         case PAD_1:
-            printf("type 0\n");
+            printf("\n #0 [PAD_1] received \n");
             break;
         case PAD_N:
-            printf("type 1\n");
+            printf("\n #1 [PAD_N] received \n");
             break;
         case NEIGH_R:
-            printf("type 2");
+            printf("\n #2 [NEIGH_R] received \n");
             //Ce TLV demande au récepteur d’envoyer un TLVNeighbour
             Voisin *v=hasardVoisin(voisins);
             servaddr.sin6_port = htons(v->port);
@@ -508,7 +508,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
             else printf("\n error , paquet type 3 non sent  \n");
             break;
         case NEIGH:
-            printf("type 3 Recieved :\n");
+            printf("\n #3 [NEIGH] received \n");
             tlv_chain netHash;
             memset(&netHash, 0, sizeof(netHash));
           //  printf("\n ip=%s",list->object[index].data);
@@ -538,7 +538,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
             }
             break;
         case NET_HASH:
-            printf("type 4");
+            printf("\n #4 [NET_HASH] received \n");
             ip[INET6_ADDRSTRLEN];
             servaddr.sin6_port = htons(ports);
             p=inet_pton(AF_INET6,ips,&servaddr.sin6_addr);
@@ -562,13 +562,13 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
 
             break;
         case NET_STATE_R:
-            printf("type 5");
+            printf("\n #5 [NET_STATE_R] received \n");
             //Ce TLV demande au récepteur d’envoyer une série de TLVNode Hash
             sendSerieTlvNode(datalist,sockfd,ips,ports);
             break;
         case NODE_HASH:
             //Ce TLV est envoyé en réponse à un TLVNetwork State Request.
-            printf("type 6");
+            printf("\n #6 [NODE_HASH] received \n");
             servaddr.sin6_port = htons(ports);
             p=inet_pton(AF_INET6,ips,&servaddr.sin6_addr);
             if(p==-1)
@@ -606,7 +606,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
             }
             break;
         case NODE_STATE_R:
-            printf("type 7");
+            printf("\n #7 [NODE_STATE_R] received \n");
             //Ce TLV demande au récepteur d’envoyer un TLVNode Statedécrivant l’état du nœud indiquépar le champNode Id
             char *idnode=list->object[index].data;
             //port=ntohs(addr->sin6_port);
@@ -645,13 +645,13 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
 
             break;
         case NODE_STATE:
-            printf("type 8");
+            printf("\n #8 [NODE_STATE] received \n");
              // Ce TLV est envoyé en réponse à un TLVNode State Request
              NodeState(datalist,list->object[index].data,list->object[index].size,ips,ports,sockfd);
 
             break;
         case WARNING:
-            printf("\n WARNING:  \n");
+            printf("\n #9 [WARNING] received \n");
             printf("- %s \n",list->object[index].data);
             break;
         default:
