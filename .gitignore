@@ -55,6 +55,7 @@ dkms.conf
 # mine !
 *.txt
 client
+peer
 server
 main
 projet

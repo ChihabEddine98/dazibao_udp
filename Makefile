@@ -11,8 +11,8 @@ main: main.o biblio.o
 server: server.o biblio.o
 		gcc -o server server.o biblio.o
 
-client: client.o biblio.o
-		gcc -o client client.o biblio.o  -lssl -lcrypto -pthread
+peer: client.o biblio.o
+		gcc -o peer client.o biblio.o  -lssl -lcrypto -pthread
 
 main.o: main.c biblio.c $(HEADERS) 
 			gcc -o main.o -c main.c 
@@ -20,8 +20,8 @@ main.o: main.c biblio.c $(HEADERS)
 server.o: server.c $(HEADERS)
 			gcc -o server.o -c server.c
 
-client.o: client.c $(HEADERS)
-			gcc -o client.o -c client.c
+client.o: peer.c $(HEADERS)
+			gcc -o client.o -c peer.c
 
 biblio.o: biblio.c 
 			gcc -o biblio.o -c biblio.c
@@ -30,6 +30,6 @@ clean:
 		rm -rf *.o
 
 clean_all: clean
-		rm -rf projet client server main
+		rm -rf projet client server main peer
 		
 		
