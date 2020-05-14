@@ -66,7 +66,7 @@ int main(int argc,char *argv[]) {
           voisins->TableDevoisins[j]=NULL;
         }
         initaddr(voisins,hostname,port);
-        printf("\n portttt=%d",port);
+       // printf("\n portttt=%d",port);
          affichervoisins(voisins);
         unsigned char *chainbuff=malloc(1024) ;
         uint16_t l = 0;

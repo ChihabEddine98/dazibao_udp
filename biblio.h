@@ -96,13 +96,8 @@ typedef struct {
 
 
 ///---------------------------------------------------------------------------------
-int32_t tlv_chain_add_int32(tlv_chain *a, int32_t x);
-int32_t tlv_chain_add_str( tlv_chain *a, const char *str);
 int32_t add_tlv( tlv_chain *a, unsigned char type, int16_t size, const unsigned char *bytes);
 int16_t tlv_chain_toBuff( tlv_chain *a, unsigned char *dest, int16_t *count);
-int32_t Buff_to_tlv_chain(const unsigned char *src,  tlv_chain *dest, int32_t length);
-int32_t afficher_tlv_chain(tlv_chain *a);
-int32_t  free_tlv_list( tlv_chain *a);
 int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length,int sockfd,char *ips,uint16_t ports);
 char* chain2Paquet (char *chain,uint16_t  len);
 

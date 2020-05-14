@@ -14,20 +14,6 @@
 
 /// ---------------------------------------- fonctions Tlv --------------------------------
 
-
-
-int32_t tlv_chain_add_int32(tlv_chain *a, int32_t x)
-{
-    return add_tlv(a, 1, 4, &x);
-}
-
-// add tlv object which contains null terminated string
-int32_t tlv_chain_add_str( tlv_chain *a, const char *str)
-{
-    return add_tlv(a, 9, strlen(str) + 1, str);
-}
-
-
 int32_t add_tlv( tlv_chain *a, unsigned char type, int16_t size, const unsigned char *bytes)
 {
     if(a == NULL )
@@ -52,20 +38,6 @@ int32_t add_tlv( tlv_chain *a, unsigned char type, int16_t size, const unsigned 
     return 0;
 }
 
-int32_t free_tlv_list( tlv_chain *a)
-{
-    if(a == NULL)
-        return -1;
-
-    for(int i =0; i < a->used; i++)
-    {
-        free(a->object[i].data);
-
-        a->object[i].data = NULL;
-    }
-
-    return 0;
-}
 
 // serialize the tlv chain into byte array
 int16_t tlv_chain_toBuff( tlv_chain *a, unsigned char *dest, int16_t *count)
@@ -102,47 +74,6 @@ char len[2];
     return 0;
 }
 
-int32_t Buff_to_tlv_chain(const unsigned char *src,  tlv_chain *dest, int32_t length)
-{
-    if(dest == NULL || src == NULL)
-        return -1;
-
-    // we want an empty chain of tlv
-    if(dest->used != 0)
-        return -1;
-
-    int32_t counter = 0;
-    while(counter < length)
-    {
-        if(dest->used == MAX_TLV_OBJECTS)
-            return -1;
-        // deserialize type
-        dest->object[dest->used].type = src[counter];
-        counter++;
-
-        // deserialize size
-        memcpy(&dest->object[dest->used].size, &src[counter], 2);
-        counter+=2;
-
-        // deserialize data itself, only if data is not NULL
-        if(dest->object[dest->used].size > 0)
-        {
-            dest->object[dest->used].data = malloc(dest->object[dest->used].size);
-            memcpy(dest->object[dest->used].data, &src[counter], dest->object[dest->used].size);
-            counter += dest->object[dest->used].size;
-        }else
-        {
-            dest->object[dest->used].data = NULL;
-        }
-
-        // increase number of tlv objects reconstructed
-        dest->used++;
-    }
-
-    // success
-    return 0;
-
-}
 
 int32_t parserV1(const unsigned char *src,  tlv_chain *list, uint16_t length,int sockfd,char *ips,uint16_t ports)
 {
@@ -523,7 +454,7 @@ void sendSerieTlvNode(Data *datalist,int sockfd,char *ips,uint16_t ports){
     }
     tlv_chain_toBuff(&chaine, chainbuff, &l);
     char *paquet=chain2Paquet(chainbuff,l);
-    printf("\n the L is %d \n",l);
+   // printf("\n the L is %d \n",l);
 
     if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
         printf("\n serie TLV Node Hash 6 sent  \n");
@@ -580,21 +511,21 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
             printf("type 3 Recieved :\n");
             tlv_chain netHash;
             memset(&netHash, 0, sizeof(netHash));
-            printf("\n ip=%s",list->object[index].data);
+          //  printf("\n ip=%s",list->object[index].data);
             //Ce TLV contient l’adresse d’un voisin vivant de l’émetteur
             data=list->object[index].data;
              int8_t length=list->object[index].size;
-            printf("\n len=%d",l);
+           // printf("\n len=%d",l);
             uint16_t port=0;
             unsigned char *ip=malloc(16*sizeof(char));
             memcpy(ip,data,length-2);
             memcpy(&port,&data[length-2],2);
             short port2=ntohs(port);
-            printf("\n port =%d ",port);
-            printf("\n ip formatted : %s\n",parseIp(ip));
+           // printf("\n port =%d ",port);
+           // printf("\n ip formatted : %s\n",parseIp(ip));
             servaddr.sin6_family = AF_INET6;
              servaddr.sin6_port = htons(port2);
-             printf("\n djelid ip:%s",parseIp(ip));
+           //  printf("\n djelid ip:%s",parseIp(ip));
             memcpy(&servaddr.sin6_addr,ip,16);
            //  p1=inet_pton(AF_INET6,parseIp(ip),&servaddr.sin6_addr);
             char *net=NetworkHash(datalist);
@@ -608,13 +539,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
             break;
         case NET_HASH:
             printf("type 4");
-            //Ce TLV indique l’idée que se fait l’émetteur de l’état actuel du réseau
-           // port=ntohs(addr->sin6_port);
-            // char *ip=inet_ntop(addr->sin6_addr);
             ip[INET6_ADDRSTRLEN];
-            //inet_ntop(AF_INET6,&addr->sin6_addr,ip,sizeof(ip));
-            //memcpy(&servaddr.sin6_addr,&addr->sin6_addr,16);
-            //memcpy(&servaddr.sin6_addr,ip,16);
             servaddr.sin6_port = htons(ports);
             p=inet_pton(AF_INET6,ips,&servaddr.sin6_addr);
             if(p==-1)
@@ -776,7 +701,7 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd,
         memcpy(&len, &buf[2], 2);
         len = ntohs(len);
        // printf("\n\nthe length of paquet in=%d ", len);
-       printf("\n \n lenpa=%d and lenin=%d",lenp,len);
+      // printf("\n \n lenpa=%d and lenin=%d",lenp,len);
         int paquettaille = len + 4;
         if ( lenp >paquettaille) {
           char msg[45];
@@ -826,7 +751,6 @@ void addVoisin(Voisins *voisins,SA *addr, uint16_t port){
     int count=0;
     while(count<Max_voisin){
         if(voisins->TableDevoisins[count]==NULL){
-            printf("\n ajouter ");
             voisins->TableDevoisins[count]=malloc(sizeof(Voisin));
             voisins->TableDevoisins[count]->port=port;
             voisins->TableDevoisins[count]->ip=malloc(45);
@@ -865,7 +789,7 @@ void modifierVoisin(Voisins *voisins,SA *addr, uint16_t port){
     while(count<Max_voisin){
         if(voisins->TableDevoisins[count]!=NULL){
             if(voisins->TableDevoisins[count]->port==port && memcmp(voisins->TableDevoisins[count]->ip,&addr->sin6_addr,16)==0){
-                printf("\nmodifier la data\n");
+               // printf("\nmodifier la data\n");
                 voisins->TableDevoisins[count]->date=now;
             }
         }
@@ -874,10 +798,8 @@ void modifierVoisin(Voisins *voisins,SA *addr, uint16_t port){
 }
 void miseAjourVoisins(Voisins *voisins,SA *addr, uint16_t port){
     if(rechercheEmetteur(voisins,addr,port)==1){
-        printf("\n modifier");
         modifierVoisin(voisins,addr,port);
     }else{
-        printf("\n add");
         addVoisin(voisins,addr,port);
     }
 }
@@ -942,7 +864,7 @@ Voisin *hasardVoisin(Voisins *voisins){
 void moinsde5voisins(Voisins *voisins,int sockfd){
     if (voisins->used==0) return;
     if (voisins->used<5){
-        printf("\nthe number of used %d\n",voisins->used);
+       // printf("\nthe number of used %d\n",voisins->used);
         SA servaddr;
         Voisin *v=hasardVoisin(voisins);
 
@@ -976,7 +898,7 @@ void moinsde5voisins(Voisins *voisins,int sockfd){
 void *sendNet20s(void *args){
     arg2 *argss=(arg2 *)args;
     while (1){
-        printf("\n datalist used  %d",argss->datalist->used);
+       // printf("\n datalist used  %d",argss->datalist->used);
         sendNetHAsh(argss->arg1,argss->datalist,argss->sockfd);
         afficherdata(argss->datalist);
         affichervoisins(argss->arg1);
@@ -988,7 +910,7 @@ void *sendNet20s(void *args){
 void *miseAjour20s(void *args){
     arg *argss = (arg *)args;
     while (1){
-        printf("\n on est la  and the num is %d",argss->arg1->used);
+       // printf("\n on est la  and the num is %d",argss->arg1->used);
         parcoursVoisins(argss->arg1);
         moinsde5voisins(argss->arg1,argss->sockfd);
         sleep(20);
@@ -1011,7 +933,6 @@ if(rc<0)
     while(count<Max_voisin){
         if(voisins->TableDevoisins[count]!=NULL){
             if(now.tv_sec-voisins->TableDevoisins[count]->date.tv_sec>70 && voisins->TableDevoisins[count]->permanent==0){
-               printf("\n\ndelet");
                 voisins->TableDevoisins[count]=NULL;
                 voisins->used-=1;
             }
@@ -1128,14 +1049,7 @@ void initaddr(Voisins *voisins,char *hostname,uint16_t port){
            if(rechercheEmetteur(voisins,&sinaddr,port)==0){
                 addVoisin(voisins,&sinaddr,port);
             }
-
         }
-
-        // Conversion de l'adresse IP en une chaîne de caractères
-
-        //printf(" IPv%c: %s\n", ipver, ipstr);
-        //if(rechercheEmetteur(voisins,addr,port)==0)
-        //addVoisin(voisins,addr,port);
 
     }
 
