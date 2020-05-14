@@ -21,7 +21,7 @@ server.o: server.c $(HEADERS)
 			gcc -o server.o -c server.c
 
 client.o: peer.c $(HEADERS)
-			gcc -o client.o -c peer.c
+			gcc -o client.o -c peer.c -Wall
 
 biblio.o: biblio.c 
 			gcc -o biblio.o -c biblio.c

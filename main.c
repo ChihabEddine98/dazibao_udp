@@ -14,7 +14,7 @@
 
 int main() {
 
-
+printf("the cmp is %d", memcmp("0e:7e:d5",MY_ID,8));
 
 
     /*

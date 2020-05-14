@@ -29,7 +29,7 @@ int main(int argc,char *argv[]) {
 
         int sockfd;
         char buffer[MAXLINE];
-        char *hello = "Hello from client";
+       // char *hello = "Hello from client";
         SA	 servaddr;
 
         // Creating socket file descriptor
@@ -43,10 +43,12 @@ int main(int argc,char *argv[]) {
             servaddr.sin6_family = AF_INET6;
 
             int val=1;
-            int poly_port=setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
+            //int poly_port;
+            setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
 
             val=0;
-            int poly=setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
+            //int poly;
+            setsockopt(sockfd,IPPROTO_IPV6,IPV6_V6ONLY,&val,sizeof(val));
 
 
             servaddr.sin6_port = htons(SERVER_PORT);
@@ -66,28 +68,8 @@ int main(int argc,char *argv[]) {
           voisins->TableDevoisins[j]=NULL;
         }
         initaddr(voisins,hostname,port);
-       // printf("\n portttt=%d",port);
-         affichervoisins(voisins);
-        unsigned char *chainbuff=malloc(1024) ;
-        uint16_t l = 0;
-        char *paquet;
-        tlv_chain neigh;
-        char *net=NetworkHash(datatable);
-        memset(&neigh, 0, sizeof(neigh));
-        // add_tlv(&neigh,NEIGH_R,0,NULL);
-        //add_tlv(&neigh,NET_HASH,strlen(net),net);
-        add_tlv(&neigh,NET_STATE_R,0,NULL);
         int n=0;
-        int len;
-        tlv_chain_toBuff(&neigh, chainbuff, &l);
-        paquet=chain2Paquet(chainbuff,l);
-       // n=sendto(sockfd, (char *)paquet,l+4,MSG_CONFIRM, (const struct sockaddr *) &servaddr,sizeof(servaddr));
-        //if (n>0) printf("paquet  5 sent.\n");
-
-        //n = recvfrom(sockfd, (char *)buffer, MAXLINE,MSG_WAITALL, (struct sockaddr *) &servaddr,&len);
-       //if(n>0){
-         //  printf("\npaquet recev");
-       //}
+        socklen_t  len;
 
     pthread_t thread1;
         arg *arg1=malloc(sizeof(arg));
@@ -153,14 +135,4 @@ int main(int argc,char *argv[]) {
 
     }
 
-/*
-        n = recvfrom(sockfd, (char *)buffer, MAXLINE,
-                     0, (struct sockaddr *) &servaddr,
-                     &len);
-        buffer[n] = '\0';
-        printf("Server : %s\n", buffer);
-*/
-//pthread_join(&thread1,NULL);
-        close(sockfd);
-        return 0;
     }
