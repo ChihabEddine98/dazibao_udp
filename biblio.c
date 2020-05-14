@@ -403,7 +403,7 @@ void sendWarning(char *msg,int sockfd,char * ips,uint16_t ports){
     add_tlv(&chaine,WARNING,strlen(msg),msg);
     tlv_chain_toBuff(&chaine, chainbuff, &l);
     char *paquet=chain2Paquet(chainbuff,l);
-    if (sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+    if (sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const struct sockaddr *)&servaddr,sizeof(servaddr))>0)
         printf("\n paquet type 9 sent  \n");
     else printf("\n error , paquet type 9 non sent  \n");
 
@@ -439,7 +439,7 @@ void sendSerieTlvNode(Data *datalist,int sockfd,char *ips,uint16_t ports){
     memset(&chaine, 0, sizeof(chaine));
     char *h;
     char *data=malloc(sizeof(char)*26);
-    unsigned char chainbuff[12000]={0} ;
+    unsigned char chainbuff[99000]={0} ;
     uint16_t l = 0;
     int len;
    // printf("\n port %d",addr->sin6_port);
@@ -456,7 +456,7 @@ void sendSerieTlvNode(Data *datalist,int sockfd,char *ips,uint16_t ports){
     char *paquet=chain2Paquet(chainbuff,l);
    // printf("\n the L is %d \n",l);
 
-    if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+    if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const struct sockaddr *)&servaddr,sizeof(servaddr))>0)
         printf("\n serie TLV Node Hash 6 sent  \n");
     else
         printf("\n error , serie TLV Node Hash 6 non sent  \n");
@@ -503,7 +503,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
             add_tlv(&neigh,NEIGH,strlen(data),data);
             tlv_chain_toBuff(&neigh, chainbuff, &l);
             paquet=chain2Paquet(chainbuff,l);
-            if (sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+            if (sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const struct sockaddr *)&servaddr,sizeof(servaddr))>0)
              printf("\n paquet type 3 sent  \n");
             else printf("\n error , paquet type 3 non sent  \n");
             break;
@@ -532,7 +532,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
             add_tlv(&netHash,NET_HASH,16,net);
             tlv_chain_toBuff(&netHash,chainbuff, &l);
             paquet=chain2Paquet(chainbuff,l);
-            if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+            if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const struct sockaddr *)&servaddr,sizeof(servaddr))>0)
             {
                     printf("\n paquet type 4 sent  \n");
             }
@@ -553,7 +553,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
                 add_tlv(&netstate,NET_STATE_R,0,NULL);
                 tlv_chain_toBuff(&netstate, chainbuff, &l);
                 paquet=chain2Paquet(chainbuff,l);
-                if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+                if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const struct sockaddr *)&servaddr,sizeof(servaddr))>0)
                   printf("\n paquet type 5 sent  \n");
                 else
                     printf("\n error , paquet type 5 non sent  \n");
@@ -589,7 +589,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
                 add_tlv(&netstatereq,NODE_STATE_R,8,id);
                 tlv_chain_toBuff(&netstatereq, chainbuff, &l);
                 paquet=chain2Paquet(chainbuff,l);
-               if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+               if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const struct sockaddr *)&servaddr,sizeof(servaddr))>0)
                     printf("\n paquet type 7 sent ! \n");
                 else  printf("\n error , paquet type 7 non sent  \n");
             } else if(d->incr==1){
@@ -598,7 +598,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
                 add_tlv(&netstatereq,NODE_STATE_R,8,id);
                 tlv_chain_toBuff(&netstatereq, chainbuff, &l);
                 paquet=chain2Paquet(chainbuff,l);
-                if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+                if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const struct sockaddr *)&servaddr,sizeof(servaddr))>0)
                  printf("\n paquet type 7 sent  \n");
                 else  printf("\n error , paquet type 7 non sent  \n");
             } else {
@@ -637,7 +637,7 @@ void parserTLV(Data *datalist,Voisins *voisins,tlv_chain *list,int index,char * 
                 tlv_chain_toBuff(&node_state, chainbuff, &l);
                 paquet = chain2Paquet(chainbuff,l);
                 //printf("\nla taille l est:%d",l);
-                if (sendto(sockfd, (const char *) paquet,l + 4, 0, (const SA *) &servaddr, sizeof(servaddr)) > 0)
+                if (sendto(sockfd, (const char *) paquet,l + 4, 0, (const struct sockaddr *) &servaddr, sizeof(servaddr)) > 0)
                     printf("\n paquet type 8 sent  \n");
                 else printf("\n error , paquet type 8 non sent  \n");
             } else printf("\n data non trouve  \n");
@@ -689,7 +689,7 @@ void parserPaquet(Data *datalist,Voisins *voisins,char *buf,SA *addr,int sockfd,
         // char *ip=inet_ntop(addr->sin6_addr);
         char ip[INET6_ADDRSTRLEN];
         inet_ntop(AF_INET6, &addr->sin6_addr, ip, sizeof(ip));
-        if (rechercheEmetteur(voisins, ip, port) == 0 && voisins->used == 15) {
+        if (rechercheEmetteur(voisins, addr, port) == 0 && voisins->used == 15) {
             printf(" \nerror ---- : le paquet est ignoré \n");
             return;
         }
@@ -828,7 +828,7 @@ void TLVNetworkHash(Voisin *v,Data *datalist,int sockfd){
     add_tlv(&neigh,NET_HASH,16,net);
     tlv_chain_toBuff(&neigh,chainbuff, &l);
     char *paquet=chain2Paquet(chainbuff,l);
-    if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const SA *)&servaddr,sizeof(servaddr))>0)
+    if(sendto(sockfd,(const char *)paquet,l+4,MSG_CONFIRM,(const struct sockaddr *)&servaddr,sizeof(servaddr))>0)
     {
         printf("\n paquet type 4 sent  \n");
     }

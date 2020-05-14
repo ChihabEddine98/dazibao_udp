@@ -40,7 +40,7 @@
                                      
 
 
-typedef struct sockaddr_in6 SA ;
+typedef  struct sockaddr_in6 SA ;
 
 
 
