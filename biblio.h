@@ -23,6 +23,7 @@
 #define MAX_TLV_OBJECTS 1000
 #define MAX_DATA 100
 #define Max_voisin 15
+#define MY_ID "0e:7e:d5"
 
 #define PAD_1 0
 #define PAD_N 1

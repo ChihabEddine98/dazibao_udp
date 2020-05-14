@@ -59,7 +59,7 @@ int main(int argc,char *argv[]) {
 
 
         Data *datatable=malloc(sizeof(Data));
-        insererData(datatable,"0e:7e:d5",10345,"hello world");
+        insererData(datatable,MY_ID,10345,"hello world");
         Voisins *voisins=malloc(sizeof(Voisins));
         voisins->used=0;
         for (int j = 0; j <15 ; j++) {
