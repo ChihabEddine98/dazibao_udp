@@ -9,10 +9,15 @@
 #include <netinet/in.h>
 #include "biblio.h"
 #include <openssl/sha.h>
+#include <netdb.h>
 
 
 int main() {
 
+
+
+
+    /*
     char *ip="::ffff:12.13.14.13";
     int i;
     unsigned char word[] = "::ffff:12.13.14.13";

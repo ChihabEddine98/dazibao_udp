@@ -130,5 +130,7 @@ int nbVoisin(Voisins *voisins);
 void sendNetHAsh(Voisins *voisins,Data *datalist,int sockfd);
 void *sendNet20s(void *args);
 void afficherdata(Data *datalist);
+void initaddr(Voisins *voisins,char *hostname,uint16_t port);
+void affichervoisins(Voisins *voisins);
 
 #endif //PROJETR_BIBLIO_H

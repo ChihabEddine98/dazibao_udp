@@ -8,6 +8,8 @@
 #include <time.h>
 #include <unistd.h>
 #include "math.h"
+#include <netdb.h>
+
 
 
 /// ---------------------------------------- fonctions Tlv --------------------------------
@@ -1067,6 +1069,78 @@ void insererData(Data *datalist,char *id,uint16_t seq,char *donnee){
         t->suivant=tmp;
     }
     datalist->used+=1;
+}
+
+void initaddr(Voisins *voisins,char *hostname,uint16_t port){
+    struct addrinfo* result;
+    struct addrinfo* res;
+    int error;
+    void *addr;
+    SA sinaddr;
+    char ipver;
+    char ipstr[INET6_ADDRSTRLEN];
+    char *tmp=malloc(sizeof(char)*60);
+    char *f="::ffff:";
+    memset(&sinaddr, 0, sizeof(sinaddr));
+
+    error = getaddrinfo(hostname, NULL, NULL, &result);
+    if (error != 0) {
+        if (error == EAI_SYSTEM) {
+            perror("getaddrinfo");
+        } else {
+            fprintf(stderr, "error in getaddrinfo: %s\n", gai_strerror(error));
+        }
+        exit(EXIT_FAILURE);
+    }
+
+    for (res = result; res != NULL; res = res->ai_next) {
+        char hostname[NI_MAXHOST];
+        // Identification de l'adresse courante
+        if (res->ai_family == AF_INET) { // IPv4
+            struct sockaddr_in *ipv4 = (struct sockaddr_in *)res->ai_addr;
+            addr = &(ipv4->sin_addr);
+            ipver = '4';
+            inet_ntop(res->ai_family, addr, ipstr, sizeof(ipstr));
+            memcpy(tmp,f,strlen(f));
+            memcpy(&tmp[strlen(f)],ipstr,strlen(ipstr));
+            int p;
+            p=inet_pton(AF_INET6,tmp,addr);
+            if(p==-1)
+            {
+                perror(" ip err ");
+                exit(1);
+            }
+            memcpy(&sinaddr.sin6_addr,addr,16);
+            if(rechercheEmetteur(voisins,&sinaddr,port)==0)
+            {
+                addVoisin(voisins,&sinaddr,port);
+            }
+
+           // printf(" tmp %s\n", tmp);
+
+        }
+        else { // IPv6
+            struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)res->ai_addr;
+            addr = &(ipv6->sin6_addr);
+            ipver = '6';
+            inet_ntop(res->ai_family, addr, ipstr, sizeof(ipstr));
+            memcpy(&sinaddr.sin6_addr,&(ipv6->sin6_addr),16);
+           if(rechercheEmetteur(voisins,&sinaddr,port)==0){
+                addVoisin(voisins,&sinaddr,port);
+            }
+
+        }
+
+        // Conversion de l'adresse IP en une chaîne de caractères
+
+        //printf(" IPv%c: %s\n", ipver, ipstr);
+        //if(rechercheEmetteur(voisins,addr,port)==0)
+        //addVoisin(voisins,addr,port);
+
+    }
+
+    freeaddrinfo(result);
+
 }
 
 

@@ -18,8 +18,14 @@
 #define MAXLINE 1024
 
 // Driver code
-int main() {
-
+int main(int argc,char *argv[]) {
+    if(argc!=3)
+    {
+        perror("wrong usage");
+        exit(1);
+    }
+    char *hostname=argv[1];
+    uint16_t port=atoi(argv[2]);
 
         int sockfd;
         char buffer[MAXLINE];
@@ -59,7 +65,9 @@ int main() {
         for (int j = 0; j <15 ; j++) {
           voisins->TableDevoisins[j]=NULL;
         }
-
+        initaddr(voisins,hostname,port);
+        printf("\n portttt=%d",port);
+         affichervoisins(voisins);
         unsigned char *chainbuff=malloc(1024) ;
         uint16_t l = 0;
         char *paquet;
@@ -73,8 +81,8 @@ int main() {
         int len;
         tlv_chain_toBuff(&neigh, chainbuff, &l);
         paquet=chain2Paquet(chainbuff,l);
-        n=sendto(sockfd, (char *)paquet,l+4,MSG_CONFIRM, (const struct sockaddr *) &servaddr,sizeof(servaddr));
-        if (n>0) printf("paquet  5 sent.\n");
+       // n=sendto(sockfd, (char *)paquet,l+4,MSG_CONFIRM, (const struct sockaddr *) &servaddr,sizeof(servaddr));
+        //if (n>0) printf("paquet  5 sent.\n");
 
         //n = recvfrom(sockfd, (char *)buffer, MAXLINE,MSG_WAITALL, (struct sockaddr *) &servaddr,&len);
        //if(n>0){
@@ -95,7 +103,7 @@ int main() {
     a->sockfd=sockfd;
     a->arg1=voisins;
     a->datalist=datatable;
-    if(pthread_create(&thread2, NULL,sendNet20s,a) == -1) {
+    if(pthread_create(&thread2,NULL,sendNet20s,a)==-1) {
         perror("pthread_create");
         return EXIT_FAILURE;
     }
